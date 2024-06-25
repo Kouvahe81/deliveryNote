@@ -1,0 +1,32 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 40px; /* Espacement entre le HeaderHome et le contenu */
+}
+
+.textShow ul {
+  list-style-type: none;
+}
+.text-center {
+  text-align: center;
+}
+
+.textShow li {
+  font-size: 30px;
+  margin-bottom: 20px;
+}
+
+.textShow {
+  margin-top: 10px; /* Espacement entre les deux lignes de texte */
+}
+
+.error-message {
+  color: brown;
+}
+@media (max-width: 768px) {
+  .container {
+    margin-top: 0; /* Supprime l'espacement entre le HeaderHome et le contenu lorsque l'écran est réduit */
+  }
+}
