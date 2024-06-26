@@ -1,0 +1,30 @@
+#error-message {
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.modalFlex {
+    display: flex !important ;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.dialog-modal  {
+    width: 250px !important;
+    margin: 0 !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+
+
+.loupe{
+    height: 40px;
+    margin-right: 10px;
+}
+
+table tbody td {
+    width: auto !important; /* Permet aux cellules de s'adapter automatiquement à la largeur du contenu */
+}
