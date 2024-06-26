@@ -2,7 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate } from 'react-router-dom';
 import HeaderHome from '../components/navbar';
-
+import HomeAdmin from './homeAdmin';
+import HomeUser from './homeUser';
 import axios from 'axios';
 
 import '../styles/home.css'
@@ -10,7 +11,7 @@ import '../styles/home.css'
 const Home = () => {
     const { isAuthenticated, user } = useAuth0();
     const [userFunction, setUserFunction] = useState(null);
-    //const [isAdmin, setIsAdmin] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
     const [error, setError] = useState(null);
     const [isDefault, setIsDefault] = useState(true);
     const navigate = useNavigate();
@@ -24,7 +25,7 @@ const Home = () => {
                 return;
             }
             const userFunction = userData.functionId;
-            //setIsAdmin(userFunction === 500);
+            setIsAdmin(userFunction === 500);
             setUserFunction(userFunction);
         } catch (error) {
             console.error('Erreur lors de la récupération de la fonction de l\'utilisateur : ', error);
@@ -78,8 +79,14 @@ const Home = () => {
             }
             return (
                 <div>
-                    
-                   
+                    <div className="header-wrapper">
+                        <HeaderHome />
+                    </div>
+                    <div className="container">
+                        <div className="headerHome">
+                            {isAdmin ? <HomeAdmin /> : <HomeUser />}
+                        </div>
+                    </div>
                 </div>
             );
         }
