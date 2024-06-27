@@ -1,0 +1,86 @@
+name: Deployement Frontend and Backend
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18'
+
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm install
+
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm run build
+
+    - name: Archive frontend files
+      run: |
+        cd frontend/build
+        zip -r ../../frontend-deploy.zip .
+
+    - name: Deploy to Azure Web App for frontend
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'deliverynotemanagement'  # Nom App Service frontend
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_FRONTEND }}
+        package: frontend-deploy.zip
+
+    env:  # Définition des variables d'environnement pour le frontend
+      APP_AUTH0_DOMAIN: ${{ secrets.REACT_APP_AUTH0_DOMAIN }}
+      APP_AUTH0_CLIENT_ID: ${{ secrets.REACT_APP_AUTH0_CLIENT_ID }}
+
+  build-and-deploy-backend:
+    runs-on: ubuntu-latest
+    needs: build-and-deploy-frontend  # S'assure que le frontend est déployé avant le backend
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18'
+
+    - name: Install backend dependencies
+      run: |
+        cd backend
+        npm install
+
+    - name: Test database connection
+      run: |
+        cd backend
+        node -e "const { Client } = require('pg'); const client = new Client({ user: process.env.DB_USER, host: process.env.DB_HOST, database: process.env.DB_NAME, password: process.env.DB_PASSWORD, port: 5432 }); client.connect(err => { if (err) { console.error('Connection error', err.stack); process.exit(1); } else { console.log('Connected to database'); client.end(); } });"
+
+    - name: Archive backend files
+      run: |
+        cd backend
+        zip -r ../backend-deploy.zip .
+
+    - name: Deploy to Azure Web App for backend
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'database-deliverynote'  # Nom App Service backend
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_BACKEND }}
+        package: backend-deploy.zip
+
+    env:  # Définition des variables d'environnement pour le backend
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_HOST: ${{ secrets.DB_SERVER }}
+      DB_NAME: ${{ secrets.DB_NAME }}
