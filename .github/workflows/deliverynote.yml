@@ -65,7 +65,7 @@ jobs:
     - name: Test database connection
       run: |
         cd backend
-        node -e "const { Client } = require('pg'); const client = new Client({ user: process.env.DB_USER, host: process.env.DB_HOST, database: process.env.DB_NAME, password: process.env.DB_PASSWORD, port: 5432 }); client.connect(err => { if (err) { console.error('Connection error', err.stack); process.exit(1); } else { console.log('Connected to database'); client.end(); } });"
+        node -e "const sql = require('mssql'); const config = { user: process.env.DB_USER, password: process.env.DB_PASSWORD, server: process.env.DB_HOST, database: process.env.DB_NAME, options: { encrypt: true, trustServerCertificate: true } }; sql.connect(config, err => { if (err) { console.error('Connection error', err); process.exit(1); } else { console.log('Connected to database'); sql.close(); } });"
 
     - name: Archive backend files
       run: |
