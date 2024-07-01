@@ -1,7 +1,7 @@
 const http = require('http');
 const { connectToDatabase } = require('./dbConfig');
 const cors = require('cors');
-const PORT = process.env.PORT || 1433;
+const PORT = process.env.PORT || 4000;
 const app = require('./app')
 
 // Utilisation du middleware CORS pour toutes les routes
