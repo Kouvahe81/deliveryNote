@@ -4,6 +4,8 @@ import styled from 'styled-components';
 import { useAuth0 } from "@auth0/auth0-react";
 import axios from 'axios';
 import logo from '../images/Logo.png';
+import { REACT_APP_BACKEND_URL } from '../config';
+
 
 const NavLinks = styled.div`
   display: flex;
@@ -69,7 +71,7 @@ function Navbar() {
   useEffect(() => {
     const checkFunction = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/person/${user.email}`);
+        const response = await axios.get(`${REACT_APP_BACKEND_URL}/person/${user.email}`);
         const userData = response.data.results[0];
         if (!userData) {
           setError('Utilisateur non trouvé dans la base de données');

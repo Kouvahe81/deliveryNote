@@ -3,6 +3,7 @@ import axios from "axios";
 import HeaderHome from "../components/navbar";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/createTemplate.css';
+import { REACT_APP_BACKEND_URL } from "../config";
 
 const CreatePerson = () => {
     const [isFocused, setIsFocused] = useState(false);
@@ -62,7 +63,7 @@ const CreatePerson = () => {
     // Fonction pour charger les fonctions disponibles depuis le serveur
     const fetchFunction = async () => {
         try {
-            const response = await axios.get(`https://${process.env.REACT_APP_BACKEND_URL}/personFunction`);
+            const response = await axios.get(`htt${REACT_APP_BACKEND_URL}/personFunction`);
             setFunction_id(response.data);
         } catch (error) {
             console.error('Erreur lors du chargement des fonctions:', error);
@@ -103,7 +104,7 @@ const CreatePerson = () => {
     const handleCreatePerson = async () => {
         if (validationForm()) {
             try {
-                await axios.post(`${process.env.REACT_APP_BACKEND_URL}/person`, {
+                await axios.post(`${REACT_APP_BACKEND_URL}/person`, {
                     personFirstName,
                     personLastName,
                     personEmail,

@@ -5,6 +5,7 @@ import HeaderHome from '../components/navbar';
 import HomeAdmin from './homeAdmin';
 import HomeUser from './homeUser';
 import axios from 'axios';
+import { REACT_APP_BACKEND_URL } from '../config';
 
 import '../styles/home.css'
 
@@ -18,7 +19,7 @@ const Home = () => {
  
     const checkFunction = useCallback(async () => {
         try {
-            const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/person/${user.email}`);
+            const response = await axios.get(`${REACT_APP_BACKEND_URL}/person/${user.email}`);
             const userData = response.data.results[0];
             if (!userData) {
                 setError('Utilisateur non trouvé dans la base de données');
