@@ -1,0 +1,75 @@
+name: Deployement Frontend and Backend
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18'
+
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm install
+
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm run build
+
+    - name: Archive frontend files
+      run: |
+        cd frontend/build
+        zip -r ../../frontend-deploy.zip .
+
+    - name: Deploy to Azure Web App for frontend
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'managementdeliverynote'  # Nom App Service frontend
+        publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_86F9EF3C410B4CC8866EFFC22BF9FB42 }}
+        package: frontend-deploy.zip
+
+  build-and-deploy-backend:
+    runs-on: ubuntu-latest
+    needs: build-and-deploy-frontend  # S'assure que le frontend est déployé avant le backend
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18'
+
+    - name: Install backend dependencies
+      run: |
+        cd backend
+        npm install
+
+    - name: Test database connection
+      run: |
+        cd backend
+      
+    - name: Archive backend files
+      run: |
+        cd backend
+        zip -r ../backend-deploy.zip .
+
+    - name: Deploy to Azure Web App for backend
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'deliverynote-database'  # Nom App Service backend
+        publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_528FABA31AAB4288A9A413D051034873 }}
+        package: backend-deploy.zip
