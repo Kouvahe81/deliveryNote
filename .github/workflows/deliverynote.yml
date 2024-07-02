@@ -36,7 +36,7 @@ jobs:
     - name: Deploy to Azure Web App for frontend
       uses: azure/webapps-deploy@v2
       with:
-        app-name: 'deliverynotemanagement'  # Nom App Service frontend
+        app-name: 'managementdeliverynote'  # Nom App Service frontend
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_FRONTEND }}
         package: frontend-deploy.zip
 
@@ -70,7 +70,7 @@ jobs:
     - name: Deploy to Azure Web App for backend
       uses: azure/webapps-deploy@v2
       with:
-        app-name: 'database-deliverynote'  # Nom App Service backend
+        app-name: 'deliverynote-database'  # Nom App Service backend
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_BACKEND }}
         package: backend-deploy.zip
 
