@@ -36,5 +36,5 @@ jobs:
       uses: azure/webapps-deploy@v2
       with:
         app-name: 'deliverynote-database'  # Nom App Service backend
-        publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_8E79FF3F324F4E13BA1BBCA034460267 }}
+        publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_9D46343A90614D2EAB7FA22C4A24D500 }}
         package: backend-deploy.zip

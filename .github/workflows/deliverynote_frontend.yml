@@ -37,5 +37,5 @@ jobs:
       uses: azure/webapps-deploy@v2
       with:
         app-name: 'managementdeliverynote'  # Nom App Service frontend
-        publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_5BB2C73B67944F0499A6D87DA263DD74 }}
+        publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_4B7BA6CACBBA423DAAB6870F87C8D2FC }}
         package: frontend-deploy.zip
