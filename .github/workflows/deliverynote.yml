@@ -70,6 +70,7 @@ jobs:
     - name: Deploy to Azure Web App for backend
       uses: azure/webapps-deploy@v2
       with:
-        app-name: 'deliverynote-database'  # Nom App Service backend
+        app-name: 'database-delivery-note'
+        slot-name: 'Production'
         publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_528FABA31AAB4288A9A413D051034873 }}
-        package: backend-deploy.zip
+        package: .
