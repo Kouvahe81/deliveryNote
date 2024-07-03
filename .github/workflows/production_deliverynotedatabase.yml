@@ -22,7 +22,6 @@ jobs:
       run: |
         cd backend
         npm install
-        npm run build  # Assurez-vous que le script build existe dans package.json
 
     - name: Verify DB connection
       run: |
@@ -40,7 +39,7 @@ jobs:
         app-name: 'deliverynotedatabase'
         slot-name: 'Production'
         publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_7DC8E30E982D4937975D69AE86D2B164 }}
-        package: ./backend/build  # Répertoire contenant les fichiers construits du backend
+        package: ./backend  # Répertoire contenant les fichiers construits du backend
       env:
         DB_USER: ${{ secrets.DB_USER }}
         DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
