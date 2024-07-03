@@ -1,7 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy Node.js app to Azure Web App - managementdeliverynote
+name: Deployement Frontend 
 
 on:
   push:
@@ -19,17 +16,23 @@ jobs:
       - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
-          node-version: '20.x'
+          node-version: '20'
 
-      - name: npm install, build, and test
+      - name: Install frontend dependencies
         run: |
+          cd frontend
           npm install
-          npm run build --if-present
-          npm run test --if-present
-
-      - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
-
+      
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
+    
+      - name: Archive frontend files
+        run: |
+          cd frontend/build
+          zip -r ../../frontend-deploy.zip .
+    
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
         with:
