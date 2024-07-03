@@ -1,4 +1,4 @@
-name: Deployement  Backend
+name: Deployment Backend
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - production
 
 jobs:
-  build-and-deploy-frontend:
+  build-and-deploy-backend:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,11 +22,17 @@ jobs:
       run: |
         cd backend
         npm install
-      
-    - name: Archive backend files
+        npm run build
+
+    - name: Verify DB connection
       run: |
-        cd backend
-        zip -r ../backend-deploy.zip .
+        npm install -g sql-cli
+        mssql -u ${{ secrets.DB_USER }} -p ${{ secrets.DB_PASSWORD }} -s ${{ secrets.DB_HOST }} -d ${{ secrets.DB_NAME }} -q "SELECT 1"
+      env:
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_NAME: ${{ secrets.DB_NAME }}
 
     - name: Deploy to Azure Web App for backend
       uses: azure/webapps-deploy@v2
@@ -34,4 +40,9 @@ jobs:
         app-name: 'deliverynotedatabase'
         slot-name: 'Production'
         publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_7DC8E30E982D4937975D69AE86D2B164 }}
-        package: .
+        package: ./backend/build  # Répertoire contenant les fichiers construits du backend
+      env:
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        DB_NAME: ${{ secrets.DB_NAME }}
+        DB_HOST: ${{ secrets.DB_HOST }}
