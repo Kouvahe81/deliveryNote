@@ -23,7 +23,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         prompt: 'login',
       }}
     >
-      
+      <AutoLogout /> {/* Charge le composant AutoLogout*/}
       <BrowserRouter>
         <Routes>
           {/* Route par défaut */}
