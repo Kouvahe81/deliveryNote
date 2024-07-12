@@ -38,7 +38,7 @@ jobs:
       with:
         app-name: 'deliverynotedatabase'
         slot-name: 'Production'
-        publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_8050E9B415234B068482F66A040BF612 }}
+        publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F4973508382441E8AFBBDE7E2A330015 }}
         package: ./backend  # Répertoire contenant les fichiers construits du backend
       env:
         DB_USER: ${{ secrets.DB_USER }}
