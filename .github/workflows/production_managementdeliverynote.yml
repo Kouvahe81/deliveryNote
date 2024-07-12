@@ -31,8 +31,8 @@ jobs:
     - name: Deploy to Azure Web App for frontend
       uses: azure/webapps-deploy@v2
       with:
-        app-name: 'managementdeliverynote'  # Nom de l'App Service pour le frontend
-        publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_516732E5BE2E4F2DB1DB81A644B0449D }}
+        app-name: 'bondelivraison'  # Nom de l'App Service pour le frontend
+        publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_1957C53841D14B858C1A8B07E1C51B2C }}
         package: ./frontend/build  # Répertoire contenant les fichiers construits du frontend
 
     env:  # Définition des variables d'environnement pour le frontend
