@@ -1,0 +1,40 @@
+name: Deployment Frontend
+
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  build-and-deploy-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '20'
+
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm install
+
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm run build
+
+    - name: Deploy to Azure Web App for frontend
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'managementdeliverynote'  # Nom de l'App Service pour le frontend
+        publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_516732E5BE2E4F2DB1DB81A644B0449D }}
+        package: ./frontend/build  # Répertoire contenant les fichiers construits du frontend
+
+    env:  # Définition des variables d'environnement pour le frontend
+      REACT_APP_AUTH0_DOMAIN: ${{ secrets.REACT_APP_AUTH0_DOMAIN }}
+      REACT_APP_AUTH0_CLIENT_ID: ${{ secrets.REACT_APP_AUTH0_CLIENT_ID }}
