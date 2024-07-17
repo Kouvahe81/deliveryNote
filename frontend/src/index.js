@@ -9,6 +9,8 @@ import CreatePersonFunction from './pages/createPersonFunction';
 import PersonFunction from './pages/personFunction';
 import Person from './pages/person';
 import CreatePerson from './pages/createPerson';
+import CreateVatRate from './pages/createVATRate'
+import VatRate from './pages/vatRate'
 
 const domain = process.env.REACT_APP_AUTH0_DOMAIN;
 const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID;
@@ -34,6 +36,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path='/personFunction' element={<PersonFunction/>}/>
           <Route path='/createPerson' element={<CreatePerson/>}/>
           <Route path="/person" element={<Person/>} />
+          <Route path='/createVATRate' element={<CreateVatRate/>}/>
+          <Route path='/vatRate' element={<VatRate/>}/>
         </Routes>
       </BrowserRouter>
     </Auth0Provider>
