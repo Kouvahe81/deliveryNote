@@ -2,6 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const personFunctionRouter = require('./routes/personFunction');
 const personRouter = require('./routes/person');
+const vatRate = require('./routes/vatRate')
+
 const app = express();
 
 // Ajout des en-têtes CORS
@@ -29,5 +31,7 @@ app.use((req, res, next) => {
   
 app.use('/', personFunctionRouter);
 app.use('/', personRouter);
+app.use('/', vatRate);
+
 
 module.exports = app;

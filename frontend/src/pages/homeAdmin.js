@@ -15,7 +15,7 @@ const HomeAdmin = () => {
                         <Link to="/category" className="link">Categorie</Link>
                         <Link to="/CreateBranch" className="link">Succursale</Link>
                         <Link to="/createHeadOffice" className="link">Siège Social</Link>
-                        <Link to="/createVAT" className="link">TVA</Link>
+                        <Link to="/createVATRate" className="link">TVA</Link>
                     </div>
                 </div>
                 <div className="box">
@@ -27,7 +27,7 @@ const HomeAdmin = () => {
                         <Link to="/categoy" className="link">Categorie</Link>
                         <Link to="/branch" className="link">Succursale</Link>
                         <Link to="/headOffice" className="link">Siège Social</Link>
-                        <Link to="/vat" className="link">TVA</Link>
+                        <Link to="/vatRate" className="link">TVA</Link>
                     </div>
                 </div>
                 <div className="box">

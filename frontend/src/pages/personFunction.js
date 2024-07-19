@@ -5,6 +5,7 @@ import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Loupe from '../images/Loupe.png';
 import '../styles/category.css'
+import { REACT_APP_BACKEND_URL } from "../config";
     
     const PersonFunction = () => {
         const [personFunction, setPersonFunction] = useState([]);
@@ -46,7 +47,7 @@ import '../styles/category.css'
           
             if (confirmDelete) {
               try {
-                await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/personFunction/${functionId}`);
+                await axios.delete(`${REACT_APP_BACKEND_URL}/personFunction/${functionId}`);
                 
                 listPersonFunctions();
                 setMessage({ text: 'Cette fonction a été supprimée avec succès.', type: 'success' });
@@ -81,7 +82,7 @@ import '../styles/category.css'
         
             if (confirmUpdate) {
                 try {
-                    await axios.put(`${process.env.REACT_APP_BACKEND_URL}/personFunction/${selectedPersonFunction.functionId}`, {
+                    await axios.put(`${REACT_APP_BACKEND_URL}/personFunction/${selectedPersonFunction.functionId}`, {
                         functionName,
                     });
                     listPersonFunctions();
@@ -101,7 +102,7 @@ import '../styles/category.css'
         };
     
         const listPersonFunctions = async() => {
-            await axios.get(`${process.env.REACT_APP_BACKEND_URL}/personFunction`)
+            await axios.get(`${REACT_APP_BACKEND_URL}/personFunction`)
                 .then(response => {
                     setPersonFunction(response.data);
                 })
@@ -114,7 +115,7 @@ import '../styles/category.css'
         }, []);
     
         useEffect(() => {
-            let url = `${process.env.REACT_APP_BACKEND_URL}/personFunction`;
+            let url = `${REACT_APP_BACKEND_URL}/personFunction`;
             axios.get(url)
                 .then(response => {
                     let filteredpersonFunction = response.data;
