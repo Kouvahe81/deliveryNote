@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import HeaderHome from '../components/navbar';
+import { REACT_APP_BACKEND_URL } from "../config";
 
 const CreateVATRate = () => {
+    const currentDate = new Date().toISOString().split('T')[0];
     const [vatRateTaxe, setVatRateTaxe] = useState('');
-    const [vatRateStartDate, setVatRateStartDate] = useState('');
-    const [vatRateEndDate, setVatRateEndDate] = useState('');
+    const [vatRateStartDate, setVatRateStartDate] = useState(currentDate);
+    const [vatRateEndDate, setVatRateEndDate] = useState(currentDate);
     const [message, setMessage] = useState({ text: '', type: '' });
     const [isFocused, setIsFocused] = useState(false);
-    const currentDate = new Date().toISOString().split('T')[0];
 
     // Fonction pour le focus perdu d'un champ
     const handleBlur = (event, field) => {
@@ -29,7 +30,6 @@ const CreateVATRate = () => {
         });
     };
 
-    
     // Fonction pour la validation du formulaire
     const validationForm = () => {
         const rate = vatRateTaxe.trim();
@@ -58,7 +58,7 @@ const CreateVATRate = () => {
         if (validationForm()) {
             try {
                 // Créer le taux de TVA
-                await axios.post('http://localhost:4000/vatRate', {
+                await axios.post(`${REACT_APP_BACKEND_URL}/vatRate`, {
                     vatRateTaxe,
                     vatRateStartDate,
                     vatRateEndDate
@@ -78,8 +78,8 @@ const CreateVATRate = () => {
                 }
             } finally {
                 setVatRateTaxe('');
-                setVatRateStartDate('');
-                setVatRateEndDate('');
+                setVatRateStartDate(currentDate);
+                setVatRateEndDate(currentDate);
                 deleteMessage();
             }
         }
@@ -122,13 +122,12 @@ const CreateVATRate = () => {
                                     type="date"
                                     className={`form-control ${isFocused ? 'focused' : ''}`}
                                     id="vatRateStart"
-                                    value={vatRateStartDate || currentDate}
+                                    value={vatRateStartDate}
                                     onChange={(e) => setVatRateStartDate(e.target.value)}
                                     onBlur={(e) => handleBlur(e, 'Date de début')}
                                     onFocus={handleFocus}
                                     placeholder="Date de début"
                                     min={currentDate}
-                                    defaultValue={currentDate}
                                     required
                                 />
                             </div>
@@ -137,13 +136,12 @@ const CreateVATRate = () => {
                                     type="date"
                                     className={`form-control ${isFocused ? 'focused' : ''}`}
                                     id="vatRateEnd"
-                                    value={vatRateEndDate || currentDate}
+                                    value={vatRateEndDate}
                                     onChange={(e) => setVatRateEndDate(e.target.value)}
                                     onBlur={(e) => handleBlur(e, 'Date de fin')}
                                     onFocus={handleFocus}
                                     placeholder="Date de fin"
                                     min={currentDate}
-                                    defaultValue={currentDate}
                                     required
                                 />
                             </div>

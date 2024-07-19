@@ -6,6 +6,7 @@ import Button from 'react-bootstrap/Button';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Loupe from '../images/Loupe.png';
 import '../styles/category.css'
+import { REACT_APP_BACKEND_URL } from "../config";
 
 const Person = () => {
     const [persons, setPersons] = useState([]);
@@ -35,7 +36,7 @@ const Person = () => {
     };
 
     const listPersons = () => {
-        axios.get(`${process.env.REACT_APP_BACKEND_URL}/person`)
+        axios.get(`${REACT_APP_BACKEND_URL}/person`)
             .then(response => {
                 setPersons(response.data);
             })
@@ -49,9 +50,9 @@ const Person = () => {
         const confirmDelete = window.confirm(`Êtes-vous sûr de vouloir supprimer ${personToDelete.personFirstName} ${personToDelete.personLastName} ?`);
         if (confirmDelete) {
             try {
-                await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/person/${personID}`);
+                await axios.delete(`${REACT_APP_BACKEND_URL}/person/${personID}`);
                 listPersons();
-                setMessage({ text: `${personToDelete.personFirstName} ${personToDelete.setPersonLastName} a été supprimé avec succès.`, type: 'success' });
+                setMessage({ text: `${personToDelete.personFirstName} ${personToDelete.personLastName} a été supprimé avec succès.`, type: 'success' });
             } catch (error) {
                 console.error("Erreur lors de la suppression de l'utilisateur :", error);
                 setMessage({ text: 'Erreur lors de la suppression de l\'utilisateur.', type: 'error' });
@@ -82,7 +83,7 @@ const Person = () => {
         const confirmUpdate = window.confirm("Êtes-vous sûr de vouloir enregistrer les modifications ?");
         if (confirmUpdate) {
             try {
-                await axios.put(`${process.env.REACT_APP_BACKEND_URL}/person/${selectedPerson.personId}`, {
+                await axios.put(`${REACT_APP_BACKEND_URL}/person/${selectedPerson.personId}`, {
                     personFirstName,
                     personLastName,
                     personEmail,
@@ -106,7 +107,7 @@ const Person = () => {
     };
 
     useEffect(() => {
-        let url = `${process.env.REACT_APP_BACKEND_URL}/person`;
+        let url = `${REACT_APP_BACKEND_URL}/person`;
         axios.get(url)
             .then(response => {
                 let filteredPersons = response.data;

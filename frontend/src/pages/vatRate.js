@@ -1,28 +1,28 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import HeaderHome from "../components/navbar";
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import '../styles/category.css';
+import { REACT_APP_BACKEND_URL } from "../config";
 
 const VatRate = () => {
     const [rates, setRates] = useState([]);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm] = useState('');
     const [message, setMessage] = useState({ text: '', type: '' });
     const [showModal, setShowModal] = useState(false);
     const [selectedVatRate, setSelectedVatRate] = useState(null);
-    const [vatRateId, setVatRateId] = useState('');
     const [vatRateTaxe, setVatRateTaxe] = useState('');
     const [vatRateStartDate, setVatRateStartDate] = useState(new Date());
     const [vatRateEndDate, setVatRateEndDate] = useState(new Date());
-    const currentDate = new Date().toISOString().split('T')[0];
+    //const currentDate = new Date().toISOString().split('T')[0];
     const [isFocused, setIsFocused] = useState(false);
 
-    const deleteMessage = () => {
+    const deleteMessage = useCallback(() => {
         setTimeout(() => {
             resetMessages();
-        }, 5000)
-    }
+        }, 5000);
+    }, []);
 
     const resetMessages = () => {
         setMessage({
@@ -42,8 +42,8 @@ const VatRate = () => {
         }
     };
 
-    const listVatRates = () => {
-        axios.get('http://localhost:4000/vatRate')
+    const listVatRates = useCallback(() => {
+        axios.get(`${REACT_APP_BACKEND_URL}/vatRate`)
             .then(response => {
                 setRates(response.data);
             })
@@ -52,13 +52,13 @@ const VatRate = () => {
                 setMessage({ text: 'Erreur lors de la récupération des taux tva.', type: 'error' });
                 deleteMessage();
             });
-    };
+    }, [deleteMessage]);
 
     const handleDeleteVatRate = async (vatRateId) => {
         const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer cette TVA ?");
         if (confirmDelete) {
             try {
-                await axios.delete(`http://localhost:4000/vatRate/${vatRateId}`);
+                await axios.delete(`${REACT_APP_BACKEND_URL}/vatRate/${vatRateId}`);
                 listVatRates();
                 setMessage({ text: 'Le taux TVA a été supprimé avec succès.', type: 'success' });
             } catch (error) {
@@ -71,7 +71,6 @@ const VatRate = () => {
 
     const handleOpenModal = (vatRate) => {
         setSelectedVatRate(vatRate);
-        setVatRateId(vatRate.vatRateId);
         setShowModal(true);
         setVatRateTaxe(vatRate.vatRateTaxe);
         // Convertir la date de début et la date de fin
@@ -87,7 +86,6 @@ const VatRate = () => {
     const handleCloseModal = () => {
         setShowModal(false);
         setSelectedVatRate(null);
-        setVatRateId('');
         setVatRateTaxe('');
         setVatRateStartDate(new Date());
         setVatRateEndDate(new Date());
@@ -105,7 +103,7 @@ const VatRate = () => {
         const confirmUpdate = window.confirm("Êtes-vous sûr de vouloir enregistrer les modifications ?");
         if (confirmUpdate) {
             try {
-                await axios.put(`http://localhost:4000/vatRate/${selectedVatRate.vatRateId}`, {
+                await axios.put(`${REACT_APP_BACKEND_URL}/vatRate/${selectedVatRate.vatRateId}`, {
                     vatRateTaxe,
                     vatRateStartDate: vatRateStartDate.toISOString().split('T')[0],
                     vatRateEndDate: vatRateEndDate.toISOString().split('T')[0]
@@ -121,21 +119,16 @@ const VatRate = () => {
         }
     };
 
-    const handleSearchTermChange = (event) => {
-        const term = event.target.value;
-        setSearchTerm(term);
-    };
-
     useEffect(() => {
         listVatRates();
-    }, []);
+    }, [listVatRates]);
 
     useEffect(() => {
-        let url = 'http://localhost:4000/vatRate';
+        let url = `${REACT_APP_BACKEND_URL}/vatRate`;
         axios.get(url)
             .then(response => {
                 let filteredVatRates = response.data;
-                if (searchTerm!== '') {
+                if (searchTerm !== '') {
                     filteredVatRates = filteredVatRates.filter(vatRate =>
                         vatRate.vatRateName.includes(searchTerm)
                     );
@@ -147,7 +140,7 @@ const VatRate = () => {
                 setMessage({ text: 'Erreur lors de la récupération des taux TVAs.', type: 'error' });
                 deleteMessage();
             });
-    }, [searchTerm]);
+    }, [searchTerm, deleteMessage]);
 
     const handleFocus = () => {
         setIsFocused(true);
@@ -229,30 +222,28 @@ const VatRate = () => {
                                     value={vatRateStartDate.toISOString().split('T')[0]}
                                     onFocus={handleFocus}
                                     onChange={(e) => setVatRateStartDate(new Date(e.target.value))}
-                                    min={currentDate}
-                                />
+                                    />
                             </div>
                             <div className="form-group mb-3">
                                 <input
                                     className={`form-control ${isFocused ? 'focused' : ''}`}
                                     id="vatRateEndDate"
-                                    type="date"
+                                    type='date'
                                     placeholder="Date fin"
                                     value={vatRateEndDate.toISOString().split('T')[0]}
                                     onFocus={handleFocus}
                                     onChange={(e) => setVatRateEndDate(new Date(e.target.value))}
-                                    min={currentDate}
-                                />
+                                    />
                             </div>
                         </div>
                     )}
                 </Modal.Body>
-                <Modal.Footer className="d-flex justify-content-center">
+                <Modal.Footer>
                     <Button variant="secondary" onClick={handleCloseModal}>
-                        Fermer
+                        Annuler
                     </Button>
-                    <Button variant="success" onClick={handleUpdateVatRate}>
-                        Enregistrer
+                    <Button variant="primary" onClick={handleUpdateVatRate}>
+                        Sauvegarder
                     </Button>
                 </Modal.Footer>
             </Modal>
