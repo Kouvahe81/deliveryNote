@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const personFunctionRouter = require('./routes/personFunction');
 const personRouter = require('./routes/person');
 const vatRate = require('./routes/vatRate')
+const categoryRouter = require('./routes/category');
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use((req, res, next) => {
 app.use('/', personFunctionRouter);
 app.use('/', personRouter);
 app.use('/', vatRate);
+app.use('/', categoryRouter);
 
 
 module.exports = app;

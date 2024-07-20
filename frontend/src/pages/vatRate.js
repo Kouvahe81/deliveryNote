@@ -15,7 +15,6 @@ const VatRate = () => {
     const [vatRateTaxe, setVatRateTaxe] = useState('');
     const [vatRateStartDate, setVatRateStartDate] = useState(new Date());
     const [vatRateEndDate, setVatRateEndDate] = useState(new Date());
-    //const currentDate = new Date().toISOString().split('T')[0];
     const [isFocused, setIsFocused] = useState(false);
 
     const deleteMessage = useCallback(() => {
@@ -60,7 +59,7 @@ const VatRate = () => {
             try {
                 await axios.delete(`${REACT_APP_BACKEND_URL}/vatRate/${vatRateId}`);
                 listVatRates();
-                setMessage({ text: 'Le taux TVA a été supprimé avec succès.', type: 'success' });
+                setMessage({ text: `Le taux TVA de ${vatRateTaxe}% a été supprimé avec succès.`, type: 'success' });
             } catch (error) {
                 console.error("Erreur lors de la suppression du taux TVA :", error);
                 setMessage({ text: 'Erreur lors de la suppression du taux TVA.', type: 'error' });
@@ -109,7 +108,7 @@ const VatRate = () => {
                     vatRateEndDate: vatRateEndDate.toISOString().split('T')[0]
                 });
                 listVatRates();
-                setMessage({ text: `${vatRateTaxe} a été mis à jour avec succès.`, type: 'success' });
+                setMessage({ text: `Le nouveau taux TVA est  ${vatRateTaxe}%.`, type: 'success' });
                 handleCloseModal();
             } catch (error) {
                 console.error("Erreur lors de la mise à jour du taux TVA :", error);
