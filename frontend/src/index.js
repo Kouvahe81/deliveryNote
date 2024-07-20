@@ -16,6 +16,8 @@ import Category from './pages/category';
 import Product from './pages/product';
 import ListProduct from './pages/listProduct';
 import CreateProduct from './pages/createProduct';
+import HeadOffice from './pages/headOffice';
+import CreateHeadOffice from './pages/createHeadOffice';
 
 const domain = process.env.REACT_APP_AUTH0_DOMAIN;
 const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID;
@@ -48,6 +50,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path='/createProduct' element={<CreateProduct/>}/>
           <Route path="/product" element={<Product/>} />
           <Route path="/listProducts" element={<ListProduct/>} />
+          <Route path="/headOffice" element={<HeadOffice/>} />
+          <Route path='/createHeadOffice' element={<CreateHeadOffice/>}/>
         </Routes>
       </BrowserRouter>
     </Auth0Provider>
