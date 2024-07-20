@@ -5,7 +5,7 @@ const personRouter = require('./routes/person');
 const vatRate = require('./routes/vatRate')
 const categoryRouter = require('./routes/category');
 const product = require('./routes/product')
-
+const headOfficeRouter = require('./routes/headOffice')
 const app = express();
 
 // Ajout des en-têtes CORS
@@ -36,6 +36,7 @@ app.use('/', personRouter);
 app.use('/', vatRate);
 app.use('/', categoryRouter);
 app.use('/',product);
+app.use('/',headOfficeRouter);
 
 
 module.exports = app;
