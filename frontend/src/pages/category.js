@@ -186,7 +186,7 @@ import { REACT_APP_BACKEND_URL } from "../config";
                                         {category.map((category) => (
                                             <tr key={category.categoryId}>
                                                 <td>{category.categoryName}</td>
-                                                <td>{category.vatRateTaxe}</td>
+                                                <td>{category.vatRateTaxe}%</td>
                                                 <td>
                                                     <button className="btn btn-warning" onClick={() => handleOpenModal(category)}>Modifier</button>
                                                 </td>

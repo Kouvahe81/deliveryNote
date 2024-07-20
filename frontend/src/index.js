@@ -13,6 +13,9 @@ import CreateVatRate from './pages/createVATRate'
 import VatRate from './pages/vatRate'
 import CreateCategory from './pages/createCategory'
 import Category from './pages/category';
+import Product from './pages/product';
+import ListProduct from './pages/listProduct';
+import CreateProduct from './pages/createProduct';
 
 const domain = process.env.REACT_APP_AUTH0_DOMAIN;
 const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID;
@@ -42,6 +45,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path='/vatRate' element={<VatRate/>}/>
           <Route path='/createCategory' element={<CreateCategory/>}/>
           <Route path='/category' element={<Category/>}/>
+          <Route path='/createProduct' element={<CreateProduct/>}/>
+          <Route path="/product" element={<Product/>} />
+          <Route path="/listProducts" element={<ListProduct/>} />
         </Routes>
       </BrowserRouter>
     </Auth0Provider>

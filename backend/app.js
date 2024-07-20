@@ -4,6 +4,7 @@ const personFunctionRouter = require('./routes/personFunction');
 const personRouter = require('./routes/person');
 const vatRate = require('./routes/vatRate')
 const categoryRouter = require('./routes/category');
+const product = require('./routes/product')
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/', personFunctionRouter);
 app.use('/', personRouter);
 app.use('/', vatRate);
 app.use('/', categoryRouter);
+app.use('/',product);
 
 
 module.exports = app;
