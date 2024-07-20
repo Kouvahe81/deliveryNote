@@ -1,0 +1,102 @@
+div.card {
+  min-width: 260px;
+  min-height: 280px;
+  width: auto; /* Permet à la largeur de s'ajuster automatiquement */
+}
+
+.modal-content {
+  margin-left: -30px;
+  margin-top: 40px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  border-bottom: none; /* Supprime la bordure en bas de l'en-tête */
+}
+
+.modal-footer {
+  border-top: none; /* Supprime la bordure en haut du pied de page */
+}
+
+  .mainPage {
+    margin: 0px;
+    width: 80%;
+    position: fixed;
+    top: 55%;
+    left: 76%;
+    transform: translate(-50%, -50%);
+  }
+
+
+/* Fixe la taille de la zone de recherche */
+.form-control {
+  width: 100%;
+  
+}
+
+/* Fixe la taille du tableau */
+.table {
+  width: 100%;
+  
+}
+
+.modal-content {
+  margin-left: -30px;
+  margin-top: 40px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  border-bottom: none; /* Supprime la bordure en bas de l'en-tête */
+}
+
+.modal-footer {
+  border-top: none; /* Supprime la bordure en haut du pied de page */
+}
+
+.modal-content {
+  /* max-width: 90%;  Définit la largeur maximale du contenu du modal */
+  min-width: 90%;
+}
+
+
+/* Styles pour le formulaire à l'intérieur du modal */
+.modal-body {
+  max-height: 80vh; /* Définit la hauteur maximale du corps du modal */
+  overflow-y: auto; /* Ajoute une barre de défilement verticale si nécessaire */
+}
+
+/* Styles pour les boutons dans le footer du modal */
+.modal-footer .btn {
+  width: 35%; /* Définit la largeur des boutons pour qu'ils occupent 35% de la largeur du footer */
+  margin: 0 2.5%; /* Ajoute une marge de 2.5% sur les côtés des boutons */
+}
+
+/* Style pour l'input dynamique */
+.dynamic-width-input {
+  width: auto; /* Définit la largeur de l'input en fonction de son contenu */
+  min-width: 120px; /* Définit une largeur minimale pour l'input */
+  max-width: 100%; /* Définit une largeur maximale pour l'input */
+}
+  
+
+
+.modal-dialog {
+  min-width: 280px; /* Définit une largeur minimale pour le modal */
+  width: auto; /* Permet à la largeur de s'ajuster automatiquement */
+  color: black;
+}
+
+.First{
+  position: relative;
+}
+
+
+.Second {
+  position: absolute;
+  top: 40%;
+  transform: translateY(40%);
+}
+
