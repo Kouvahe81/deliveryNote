@@ -11,6 +11,8 @@ import Person from './pages/person';
 import CreatePerson from './pages/createPerson';
 import CreateVatRate from './pages/createVATRate'
 import VatRate from './pages/vatRate'
+import CreateCategory from './pages/createCategory'
+import Category from './pages/category';
 
 const domain = process.env.REACT_APP_AUTH0_DOMAIN;
 const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID;
@@ -38,6 +40,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/person" element={<Person/>} />
           <Route path='/createVATRate' element={<CreateVatRate/>}/>
           <Route path='/vatRate' element={<VatRate/>}/>
+          <Route path='/createCategory' element={<CreateCategory/>}/>
+          <Route path='/category' element={<Category/>}/>
         </Routes>
       </BrowserRouter>
     </Auth0Provider>
