@@ -18,6 +18,8 @@ import ListProduct from './pages/listProduct';
 import CreateProduct from './pages/createProduct';
 import HeadOffice from './pages/headOffice';
 import CreateHeadOffice from './pages/createHeadOffice';
+import Branch from './pages/branch';
+import CreateBranch from './pages/createBranch';
 
 const domain = process.env.REACT_APP_AUTH0_DOMAIN;
 const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID;
@@ -52,6 +54,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/listProducts" element={<ListProduct/>} />
           <Route path="/headOffice" element={<HeadOffice/>} />
           <Route path='/createHeadOffice' element={<CreateHeadOffice/>}/>
+          <Route path="/createBranch" element={<CreateBranch/>} />
+          <Route path="/branch" element={<Branch/>} />
         </Routes>
       </BrowserRouter>
     </Auth0Provider>
