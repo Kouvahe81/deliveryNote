@@ -24,7 +24,7 @@ const HomeAdmin = () => {
                         <Link to="/product" className="link">Produits</Link>
                         <Link to="/person" className="link">Utilisateur</Link>
                         <Link to="/personFunction" className="link">Fonction</Link>
-                        <Link to="/categoy" className="link">Categorie</Link>
+                        <Link to="/category" className="link">Categorie</Link>
                         <Link to="/branch" className="link">Succursale</Link>
                         <Link to="/headOffice" className="link">Siège Social</Link>
                         <Link to="/vatRate" className="link">TVA</Link>

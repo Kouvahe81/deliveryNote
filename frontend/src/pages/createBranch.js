@@ -5,6 +5,7 @@ import '../styles/createTemplate.css';
 import { REACT_APP_BACKEND_URL } from "../config";
 
 const CreateBranch = () => {
+    const [branchCode, setBranchCode] = useState('');
     const [branchName, setBranchName] = useState('');
     const [branchAddress, setBranchAddress] = useState('');
     const [branchCity, setBranchCity] = useState('');
@@ -48,13 +49,14 @@ const CreateBranch = () => {
     };
 
     const validationForm = () => {
+        const Code = branchCode;
         const Name = branchName.trim().toUpperCase();
         const Adress = branchAddress.trim().toUpperCase();
         const City = branchCity.trim();
         const PostalCode = branchPostalCode;
         const Office = headOfficeId
         
-        if (Name === '' || Adress === '' || City === '' || PostalCode ===''||Office ==='') {
+        if (Code === '' || Name === '' || Adress === '' || City === '' || PostalCode ===''||Office ==='') {
             setMessage({ text: 'Veuillez remplir tous les champs du formulaire.', type: 'error' });
             deleteMessage();
             return false;
@@ -83,6 +85,7 @@ const CreateBranch = () => {
                     branchCity,
                     branchPostalCode,
                     headOfficeId,
+                    branchCode
                 });
                 setMessage({ text: 'Insertion réussie', type: 'success' });
                 deleteMessage();
@@ -97,6 +100,7 @@ const CreateBranch = () => {
                     setMessage({ text: 'Insertion refusée.', type: 'error' });
                 }
             } finally {
+                setBranchCode('');
                 setBranchName('');
                 setBranchAddress('');
                 setBranchCity('');
@@ -123,6 +127,19 @@ const CreateBranch = () => {
                     <div className="card-body">
                         <form className="row">
                             <h1 className="card-title text-center"> Succursale </h1>
+                            <div className="form-group mb-3">
+                                <input
+                                    className={`form-control ${isFocused ? 'focused' : ''}`}
+                                    type="text"
+                                    id="branchCode"
+                                    value={branchCode}
+                                    onChange={(e) => setBranchCode(e.target.value)}
+                                    onBlur={(e) => handleBlur(e, 'Le code')}
+                                    onFocus={handleFocus}
+                                    placeholder="Code"
+                                    required
+                                />
+                            </div>
                             <div className="form-group mb-3">
                                 <input
                                     className={`form-control ${isFocused ? 'focused' : ''}`}

@@ -14,6 +14,7 @@ const Branch = () => {
     const [message, setMessage] = useState({ text: '', type: '' });
     const [showModal, setShowModal] = useState(false);
     const [selectedBranch, setSelectedBranch] = useState(null);
+    const [branchCode, setBranchCode] = useState('');
     const [branchName, setBranchName] = useState('');
     const [branchAddress, setBranchAddress] = useState('');
     const [branchCity, setBranchCity] = useState('');
@@ -89,6 +90,7 @@ const Branch = () => {
     const handleOpenModal = (branch) => {
         setSelectedBranch(branch);
         setShowModal(true);
+        setBranchCode(branch.branchCode);
         setBranchName(branch.branchName);
         setBranchAddress(branch.branchAddress);
         setBranchCity(branch.branchCity);
@@ -99,6 +101,7 @@ const Branch = () => {
     const handleCloseModal = () => {
         setSelectedBranch(false);
         setShowModal(null);
+        setBranchCode('');
         setBranchName('');
         setBranchAddress('');
         setBranchCity('');
@@ -115,6 +118,7 @@ const Branch = () => {
                     branchAddress,
                     branchCity,
                     branchPostalCode,
+                    branchCode,
                     headOfficeId,
                 });
                 listBranch();
@@ -175,6 +179,7 @@ const Branch = () => {
                                 <table className="table table-responsive">
                                     <thead>
                                         <tr>
+                                            <th>Code</th>
                                             <th>Nom</th>
                                             <th>Adresse</th>
                                             <th>Ville</th>
@@ -186,6 +191,7 @@ const Branch = () => {
                                     <tbody>
                                         {branches.map((branch) => (
                                             <tr key={branch.branchId}>
+                                                <td>{branch.branchCode}</td>
                                                 <td>{branch.branchName}</td>
                                                 <td>{branch.branchAddress}</td>
                                                 <td>{branch.branchCity}</td>
@@ -215,6 +221,17 @@ const Branch = () => {
                 <Modal.Body>
                     {selectedBranch && (
                         <div>
+                            <div className="form-group mb-3">
+                                <input
+                                    className={`form-control ${isFocused ? 'focused' : ''}`}
+                                    id='branchCode'
+                                    value={branchCode}
+                                    onFocus={handleFocus}
+                                    onChange={(e) => setBranchCode(e.target.value)}
+                                    placeholder="Code"
+                                    required
+                                />
+                            </div>
                             <div className="form-group mb-3">
                                 <input
                                     className={`form-control ${isFocused ? 'focused' : ''}`}

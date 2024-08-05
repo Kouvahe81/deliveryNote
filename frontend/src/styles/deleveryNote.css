@@ -1,0 +1,183 @@
+  tbody #productName {
+   max-width: 500px; 
+  }
+  
+
+  tbody #idProduct, #productPrice{
+    max-width: 80px;
+  }
+
+  tbody input {
+    max-width: 80px;
+    text-align: center;
+  }
+  .custom-modal ul {
+    list-style-type: none;
+}
+
+.custom-modal ul li:hover {
+  background-color: lightblue; 
+  cursor: pointer; 
+}
+
+.modal-dialog {
+  width: 20%;
+  margin: auto;
+  right: 0;
+  position: absolute;
+  top: 10%;
+  transform: translateY(-10%);
+}
+
+@media (max-width: 768px) {
+  .modal-dialog {
+      width: 50%;
+      max-width: 20%;
+  }
+}
+
+
+.modal-content {
+  background-color: lightgray;
+}
+
+.custom-overlay {
+  background-color: rgba(0, 0, 0, 0.5); /* Fond semi-transparent */
+}
+
+.close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin-left: auto; 
+}
+
+.close span {
+  display: inline-block;
+  line-height: 0.5;
+}
+
+.custom-select {
+  width: 90px;
+  margin: 3px;
+  border: none;
+}
+
+.address-container {
+  margin: 0;
+}
+
+.address-details div {
+  margin-bottom: 0px; 
+}
+
+/* Ajoutez ce style pour vous assurer que l'adresse est bien mise en forme */
+.address-details {
+  white-space: none; /* Assure que les sauts de ligne sont respectés */
+}
+
+.address-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0; /* Ajoute cette ligne pour supprimer l'espace entre les éléments */
+}
+
+.address-label {
+  margin: 0; /* Supprime toute marge par défaut */
+  padding: 0; /* Supprime tout remplissage par défaut */
+}
+
+.address-details, .haut {
+  margin: 0; /* Supprime toute marge par défaut */
+  padding: 0; /* Supprime tout remplissage par défaut */
+}
+
+/* Styles spécifiques à l'impression */
+@media print {
+  
+  /* Cacher les bordures des champs de saisie de type number */
+  input[type="number"] {
+      border: none;
+      outline: none;
+      /*-moz-appearance: textfield;*/
+  }
+
+  /* Supprimer les flèches d'incrémentation/décrémentation pour WebKit (Chrome, Safari) */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+  }
+
+  /* Supprimer les flèches d'incrémentation/décrémentation pour Opera */
+  input[type="number"]::-o-inner-spin-button,
+  input[type="number"]::-o-outer-spin-button {
+      -o-appearance: none;
+      margin: 0;
+  }
+
+  /* Supprimer les flèches d'incrémentation/décrémentation pour Internet Explorer */
+  input[type="number"]::-ms-expand {
+      display: none;
+  }
+
+  /* Cacher les boutons Ajouter un produit, Valider, et Imprimer */
+  .hidden-print {
+      display: none !important;
+  }
+
+    @page {
+      margin: 10mm;
+  }
+}
+
+
+.centered-column {
+  text-align: center;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 8px;
+  border: 1px solid #ddd;
+}
+
+th {
+  background-color: #f4f4f4;
+}
+
+button {
+  margin: 0 5px;
+}
+
+
+.confirmation-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.confirmation-modal p {
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.confirmation-modal button {
+  margin-right: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+

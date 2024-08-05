@@ -29,7 +29,6 @@ exports.listProducts = async (req, res) => {
   }
 };
 
-
 // Requête de création d'un produit
 exports.createProduct = async (req, res) => {
   const { productId, productName, productPrice, productCost, productCategoryId } = req.body;

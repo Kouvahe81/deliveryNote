@@ -6,7 +6,6 @@ import axios from 'axios';
 import logo from '../images/Logo.png';
 import { REACT_APP_BACKEND_URL } from '../config';
 
-
 const NavLinks = styled.div`
   display: flex;
   align-items: center;
@@ -24,7 +23,7 @@ const NavLink = styled(Link)`
   margin-right: 1rem;
   font-size: 20px;
 
-  &.links-list:hover:hover {
+  &.links-list:hover {
     background-color: #F0E68C;
     color: black;
     border-radius: 5px;
@@ -58,7 +57,7 @@ function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { loginWithRedirect, isAuthenticated, logout, user } = useAuth0();
   const [statusAuthenticated, setStatusAuthenticated] = useState(false);
-  const [setError] = useState(null);
+  const [error, setError] = useState(null);
   
   const handleAuthAction = () => {
     if (isAuthenticated && statusAuthenticated) {
@@ -88,7 +87,7 @@ function Navbar() {
     if (isAuthenticated && user && user.email) {
       checkFunction();
     }
-  }, [isAuthenticated, user,setError]);
+  }, [isAuthenticated, user]);
 
   return (
     <NavbarContainer>
@@ -105,6 +104,7 @@ function Navbar() {
           {(isAuthenticated && statusAuthenticated) ? 'Déconnexion' : 'Connexion' }
         </NavLink>
       </NavLinks>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
     </NavbarContainer>
   );
 }
