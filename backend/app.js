@@ -4,9 +4,11 @@ const personFunctionRouter = require('./routes/personFunction');
 const personRouter = require('./routes/person');
 const vatRate = require('./routes/vatRate')
 const categoryRouter = require('./routes/category');
-const product = require('./routes/product')
-const headOfficeRouter = require('./routes/headOffice')
+const product = require('./routes/product');
+const headOfficeRouter = require('./routes/headOffice');
 const branchRouter = require('./routes/branch')
+const deleveryNoteRouter = require('./routes/deliveryNote');
+const toListRouter = require('./routes/toList');
 const app = express();
 
 // Ajout des en-têtes CORS
@@ -39,6 +41,8 @@ app.use('/', categoryRouter);
 app.use('/',product);
 app.use('/',headOfficeRouter);
 app.use('/',branchRouter);
+app.use('/', deleveryNoteRouter);
+app.use('/', toListRouter);
 
 
 module.exports = app;

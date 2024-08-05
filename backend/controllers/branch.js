@@ -15,8 +15,8 @@ exports.listBranchs = async(req, res) => {
 
 // Requête de création ou mise à jour de la succursale
 exports.createBranch = async (req, res) => {
-  const { branchName, branchAddress, branchCity, branchPostalCode, headOfficeId } = req.body;
-  // Vérifier si la succursale existe déjà
+  const { branchName, branchCode, branchAddress, branchCity, branchPostalCode, headOfficeId } = req.body;
+  
   const checkBranchSql = 'SELECT * FROM branch WHERE branchName = ? OR branchAddress = ?';
   try {
     const checkBranchResults = await dbConnection.query(checkBranchSql, {
@@ -25,12 +25,10 @@ exports.createBranch = async (req, res) => {
     });
 
     if (checkBranchResults.length > 0) {
-      // La succursale existe déjà
       res.status(409).json({ message: 'La succursale existe déjà.' });
     } else {
-      // La succursale n'existe pas, procéder à l'insertion
-      const insertBranchSql = 'INSERT INTO branch (branchName, branchAddress, branchCity, branchPostalCode, headOfficeId) VALUES (?, ?, ?, ?, ?)';
-      const insertBranchValues = [branchName, branchAddress, branchCity, branchPostalCode,headOfficeId];
+      const insertBranchSql = 'INSERT INTO branch (branchName, branchAddress, branchCity, branchPostalCode, headOfficeId, branchCode) VALUES (?, ?, ?, ?, ?, ?)';
+      const insertBranchValues = [branchName, branchAddress, branchCity, branchPostalCode, headOfficeId, branchCode];
       await dbConnection.query(insertBranchSql, {
         replacements: insertBranchValues,
         type: Sequelize.QueryTypes.INSERT
@@ -43,6 +41,7 @@ exports.createBranch = async (req, res) => {
     res.status(500).json({ error: 'Erreur lors de l\'ajout de la succursale.' });
   }
 };
+
 
 // Suppression d'une succursale
 exports.DeleteBranch = async (req, res) => {
@@ -65,12 +64,12 @@ exports.DeleteBranch = async (req, res) => {
 
 // Mise à jour d'une succursale
 exports.UpdateBranch = async (req, res) => {
-  const { branchName,  branchAddress, branchCity, branchPostalCode, headOfficeId } = req.body;
+  const { branchName, branchCode, branchAddress, branchCity, branchPostalCode, headOfficeId } = req.body;
   const { branchId } = req.params;
 
   // Requête de mise à jour
-  const updateSql = 'UPDATE branch SET branchName = ?, branchAddress = ?, branchCity = ?, branchPostalCode = ?, headOfficeId = ? WHERE branchId = ?';
-  const updateValues = [branchName, branchAddress, branchCity, branchPostalCode, headOfficeId, branchId];
+  const updateSql = 'UPDATE branch SET branchName = ?, branchAddress = ?, branchCity = ?, branchPostalCode = ?, headOfficeId = ?, branchCode = ? WHERE branchId = ?';
+  const updateValues = [branchName, branchAddress, branchCity, branchPostalCode, headOfficeId, branchCode, branchId];
 
   try {
     await dbConnection.query(updateSql, {
