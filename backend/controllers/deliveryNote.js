@@ -1,7 +1,6 @@
 const {dbConnection } = require('../dbConfig');
 const { Sequelize,QueryTypes } = require('sequelize');
 
-
 // Fonction pour la liste des bons de livraisons
 exports.listDeliveryNotes = async (req, res) => {
   try {
@@ -120,7 +119,7 @@ exports.DeletedeliveryNote = async (req, res) => {
 
 // Mise à jour d'une succursale
 exports.UpdatedeliveryNote = async (req, res) => {
-  const { deliveryNoteNumber, deliveryDate, deliveryNoteStatus } = req.body;
+  const { deliveryNoteNumber, deliveryDate, deliveryNoteStatus, products } = req.body;
   const { deliveryNoteId } = req.params; 
 
   // Requête de mise à jour
@@ -128,14 +127,62 @@ exports.UpdatedeliveryNote = async (req, res) => {
   const updateValues = [deliveryNoteNumber, deliveryDate, deliveryNoteStatus, deliveryNoteId];
 
   try {
-    await dbConnection.query(updateSql, {
-      replacements: updateValues,
-      type: Sequelize.QueryTypes.UPDATE
-    });
-    res.status(200).json({ message: `${deliveryNoteNumber} a été bien mise à jour` });
+      // Mise à jour du bon de livraison
+      await dbConnection.query(updateSql, {
+          replacements: updateValues,
+          type: QueryTypes.UPDATE
+      });
+
+      // Mise à jour et ajout des produits
+      for (const product of products) {
+          const existingProduct = await dbConnection.query(
+              `SELECT deliveryQuantity, productPrice FROM to_list WHERE productId = :productId AND deliveryNoteId = :deliveryNoteId`,
+              {
+                  replacements: { productId: product.productId, deliveryNoteId: deliveryNoteId },
+                  type: QueryTypes.SELECT
+              }
+          );
+
+          const deliveryQuantity = product.deliveryQuantity !== undefined ? product.deliveryQuantity : (existingProduct.length > 0 ? existingProduct[0].deliveryQuantity : 0);
+          const productPrice = existingProduct.length > 0 ? existingProduct[0].productPrice : product.productPrice;
+
+          if (existingProduct.length > 0) {
+              // Mise à jour des produits existants
+              await dbConnection.query(
+                  `UPDATE to_list SET returnQuantity = :returnQuantity, deliveryQuantity = :deliveryQuantity, productPrice = :productPrice WHERE productId = :productId AND deliveryNoteId = :deliveryNoteId`,
+                  {
+                      replacements: {
+                          returnQuantity: product.returnQuantity || 0,
+                          deliveryQuantity: deliveryQuantity,
+                          productPrice: productPrice,
+                          productId: product.productId,
+                          deliveryNoteId: deliveryNoteId
+                      },
+                      type: QueryTypes.UPDATE
+                  }
+              );
+          } else {
+              // Ajout de nouveaux produits
+              await dbConnection.query(
+                  `INSERT INTO to_list (deliveryNoteId, deliveryQuantity, returnQuantity, productPrice, productId) VALUES (:deliveryNoteId, :deliveryQuantity, :returnQuantity, :productPrice, :productId)`,
+                  {
+                      replacements: {
+                          deliveryNoteId: deliveryNoteId,
+                          deliveryQuantity: product.deliveryQuantity || 0,
+                          returnQuantity: product.returnQuantity || 0,
+                          productPrice: productPrice,
+                          productId: product.productId
+                      },
+                      type: QueryTypes.INSERT
+                  }
+              );
+          }
+      }
+
+      res.status(200).json({ message: `${deliveryNoteNumber} a été bien mise à jour` });
   } catch (error) {
-    console.error('Erreur lors de la mise à jour du bon de livraison :', error);
-    res.status(500).json({ error: 'Erreur lors de la mise à jour du bon de livraison.' });
+      console.error('Erreur lors de la mise à jour du bon de livraison :', error);
+      res.status(500).json({ error: 'Erreur lors de la mise à jour du bon de livraison.' });
   }
 };
 

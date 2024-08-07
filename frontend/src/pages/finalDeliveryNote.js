@@ -33,7 +33,6 @@ const FinalDeliveryNote = () => {
     const [branchCity, setBranchCity] = useState('');
     const [branchPostalCode, setBranchPostalCode] = useState('');
     const [deliveryQuantity, setDeliveryQuantity] = useState(1);
-    const [returnQuantity, setReturnQuantity] = useState(0)
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const deliveryNoteId = queryParams.get('deliveryNoteId');
@@ -123,7 +122,6 @@ const FinalDeliveryNote = () => {
 
     useEffect(() => {
         listBranches();
-        
         if (modalIsOpen) {
             fetchProducts();
         }
@@ -230,48 +228,36 @@ const FinalDeliveryNote = () => {
         }, 5000)
     }
 
-    /*Fonction pour afficher le bouton
-    const showButton = () => {
-        const button = document.getElementById('myButton');
-        if (button) {
-            button.classList.remove('Hidden');  // Retirer la classe pour afficher le bouton
-        }
-    };
-    */
+    const isDebugMode = false;
+        isDebugMode && console.log(setDeliveryNoteStatus);
+        isDebugMode && console.log(setDeliveryQuantity);
+        isDebugMode && console.log(setDeliveryNote(deliveryNote));
+
 
     const handleButtonClick = async () => {
         if (!validateForm()) {
             setMessage({ text: 'Veuillez remplir tous les champs requis.', type: 'error' });
             return;
-        }   
-        
+        }
+    
         try {
             if (!deliveryNoteId) {
                 throw new Error('ID du bon de livraison non défini');
             }
+    
             // Mise à jour du bon de livraison
             await axios.put(`${REACT_APP_BACKEND_URL}/deliveryNote/${deliveryNoteId}`, {
                 deliveryNoteNumber,
                 deliveryDate,
-                deliveryNoteStatus
-            });
-            // Mise à jour des produits dans le bon de livraison
-            for (const product of selectedProducts) {
-                setReturnQuantity(product.returnQuantity);
-    
-                await axios.put(`${REACT_APP_BACKEND_URL}/toList`, {
-                    productId: product.productId,
-                    deliveryNoteId,
+                deliveryNoteStatus,
+                products: selectedProducts.map(product => ({
+                    productId: product.productId || null,
                     deliveryQuantity: product.quantity,
-                    returnQuantity,
+                    returnQuantity: product.returnQuantity || 0,
                     productPrice: product.price
-                });
-            }
-            const isDebugMode = false;
-            isDebugMode && console.log(setDeliveryNoteStatus(false));
-            isDebugMode && console.log(setDeliveryQuantity(1));
-            isDebugMode && console.log(setDeliveryNote(deliveryNote));
-
+                }))
+            });
+    
             setMessage({ text: 'Bon de livraison mis à jour avec succès', type: 'success' });
             resetMessages();
         } catch (error) {
@@ -279,7 +265,8 @@ const FinalDeliveryNote = () => {
             setMessage({ text: 'Erreur lors de la mise à jour.', type: 'error' });
         }
     };
-
+    
+    
      // Fonction pour imprimer ou retourner à la liste des bons de livraison
      const handlePrint = async () => {
         try {

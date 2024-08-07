@@ -23,6 +23,8 @@ import CreateBranch from './pages/createBranch';
 import DeliveryNote from './pages/deleveryNote';
 import ListDeliveryNote from './pages/listDeliveryNote';
 import FinalDeliveryNote from './pages/finalDeliveryNote';
+import ReturnVoucher from './pages/returnVoucher';
+import ListReturnVoucher from './pages/listReturnVoucher';
 
 
 const domain = process.env.REACT_APP_AUTH0_DOMAIN;
@@ -71,6 +73,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/deliveryNote" element={<DeliveryNote/>} />
           <Route path="/ListDeliveryNote" element={<ListDeliveryNote/>} />
           <Route path='/finalDeliveryNote' element={<FinalDeliveryNote/>}/>
+          
+          <Route path='/returnVoucher' element={<ReturnVoucher/>}/>
+          <Route path='/listReturnVoucher' element={<ListReturnVoucher/>}/>
          
         </Routes>
       </BrowserRouter>

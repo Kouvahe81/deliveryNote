@@ -235,76 +235,10 @@ const BonDeLivraison = () => {
         }
     };
 
-    // Fonction pour masquer le bouton
-    const hideButton = () => {
-        const button = document.getElementById('myButton');
-        if (button) {
-            button.classList.add('Hidden');  // Ajouter la classe pour masquer le bouton
-        }
-    };
-
-    // Fonction pour imprimer ou retourner à la liste des bons de livraison
-    const handlePrint = async () => {
-        try {
-            // Mise à jour du statut avant l'impression
-            const deliveryNoteId = await fetchLastDeliveryNoteId();
-            await axios.put(`${REACT_APP_BACKEND_URL}/deliveryNote/${deliveryNoteId}`, {
-                deliveryNoteNumber,
-                deliveryDate,
-                deliveryNoteStatus: true  // Mettre à jour le statut ici
-            });
-            
-            // Masquer les éléments avant l'impression
-            hideButton(); // Masquer le bouton "Ajouter un produit"
-
-            // Masquer les éléments avant l'impression
-            const table = document.getElementById('deliveryNoteTable');
-            if (table) {
-                const headerCells = table.rows[0].cells;
-                const actionColumnIndex = Array.from(headerCells).findIndex(cell => cell.innerText === 'Actions');
-                if (actionColumnIndex !== -1) {
-                    // Supprimer la colonne d'action
-                    for (let row of table.rows) {
-                        if (row.cells.length > actionColumnIndex) {
-                            row.deleteCell(actionColumnIndex);
-                        }
-                    }
-                }
-            }
-    
-            // Masquer les boutons
-            const buttons = document.querySelectorAll('.btn');
-            buttons.forEach(button => button.classList.add('hidden-print'));
-
-            deleteMessage();
-    
-            // Impression du bon de livraison
-            window.print();
-    
-            // Réinitialiser les styles après l'impression
-            buttons.forEach(button => button.classList.remove('hidden-print'));
-    
-            // Réafficher la colonne "Action" et actualiser la page
-            if (table) {
-                const headerRow = table.insertRow(0);
-                const headerCell = document.createElement('th');
-                headerCell.innerText = 'Actions';
-                headerRow.appendChild(headerCell);
-                for (let i = 1; i < table.rows.length; i++) {
-                    const cell = table.rows[i].insertCell(-1);
-                    cell.innerText = 'Actions';  
-                }
-            }
-    
-            // Retour à la liste des bons de livraison
-            window.location.href = '/deliveryNote';
-        } catch (error) {
-            console.error("Erreur lors de l'impression du bon de livraison :", error);
-            setMessage({ text: 'Erreur lors de l\'impression du bon de livraison.', type: 'error' });
-        }
+    const redirectToDeliveryNoteList = () => {
+        navigate('/listDeliveryNote');
     };
     
-
     const handleButtonClick = async () => {
         try {
             const deliveryNoteId = await handleCreateDeliveryNote();
@@ -505,7 +439,12 @@ const BonDeLivraison = () => {
                 </table>
                 <div className="text-center">
                     <button className='btn btn-primary m-2' onClick={handleButtonClick} disabled={deliveryNoteStatus}>Créer le bon de livraison</button>
-                    <button className="btn btn-secondary" onClick={handlePrint}>A imprimer</button>
+                    <button 
+                        className="btn btn-secondary" 
+                        onClick={redirectToDeliveryNoteList}
+                        style={{ fontWeight: 'bold' }}
+                    > → Bons</button>
+
                 </div>
                 {message && (
                     <div id="error-message" className={`${message.type === 'error' ? 'text-danger' : 'text-success'} mb-3 col-12`}>

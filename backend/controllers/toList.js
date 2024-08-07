@@ -1,6 +1,5 @@
 const {dbConnection } = require('../dbConfig');
-const { Sequelize ,DataTypes} = require('sequelize');
-
+const { Sequelize ,QueryTypes} = require('sequelize');
 
 // Fonction pour la liste  du détail d'un bons de livraisons
 exports.listTo_list = async(req, res) => {
@@ -48,6 +47,31 @@ exports.createToList = async (req, res) => {
     }
 };
 
+// Fonction pour mettre à jour la quantité d'un produit
+exports.updateQuantity = async (req, res) => {
+  const { productId, deliveryNoteId, returnQuantity } = req.body;
+  
+  if (!productId || !deliveryNoteId) {
+      return res.status(400).json({ error: 'ID du produit ou ID du bon de livraison manquant' });
+  }
+
+  try {
+      await dbConnection.query(
+          `UPDATE to_list
+           SET returnQuantity = :returnQuantity
+           WHERE productId = :productId AND deliveryNoteId = :deliveryNoteId`,
+          {
+              replacements: { returnQuantity, productId, deliveryNoteId },
+              type: QueryTypes.UPDATE
+          }
+      );
+      res.status(200).json({ message: 'Quantité mise à jour avec succès' });
+  } catch (error) {
+      console.error('Erreur lors de la mise à jour de la quantité:', error);
+      res.status(500).json({ message: 'Erreur interne du serveur' });
+  }
+};
+
 // Fonction de suppression du détail du bon de livraison
 exports.deleteToList = async (req, res) => {
   const { deliveryNoteId } = req.params;
@@ -68,17 +92,25 @@ exports.deleteToList = async (req, res) => {
 };
 
 // Mise à jour d'une succursale
-// Mise à jour d'une succursale
 exports.updateToList = async (req, res) => {
-  const { deliveryQuantity, returnQuantity = 0, productPrice, productId, deliveryNoteId } = req.body;
+  const { returnQuantity, productId, deliveryNoteId } = req.body;
 
-  // Requête de mise à jour
-  const updateSql = 'UPDATE to_list SET deliveryQuantity = ?, returnQuantity = ?, productPrice = ? WHERE productId = ? AND deliveryNoteId = ?';
-  const updateValues = [deliveryQuantity, returnQuantity, productPrice, productId, deliveryNoteId];
+  // Requête de mise à jour avec paramètres nommés pour SQL Server
+  const updateSql = `
+    UPDATE to_list 
+    SET returnQuantity = :returnQuantity 
+    WHERE productId = :productId 
+      AND deliveryNoteId = :deliveryNoteId
+  `;
 
   try {
+    // Exécution de la requête avec Sequelize et paramètres nommés
     await dbConnection.query(updateSql, {
-      replacements: updateValues,
+      replacements: {
+        returnQuantity,
+        productId,
+        deliveryNoteId
+      },
       type: Sequelize.QueryTypes.UPDATE
     });
     res.status(200).json({ message: `Produit ${productId} a été bien mis à jour` });
