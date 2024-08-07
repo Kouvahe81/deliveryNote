@@ -119,25 +119,6 @@ const ListDeliveryNote = () => {
         }
     };
 
-    // Fonction pour gérer la création ou ouverture d'un bon retour
-    const handleReturnNote = async (deliveryNoteId) => {
-        try {
-            // Vérifier s'il y a un bon retour actif pour le bon de livraison spécifié
-            const response = await axios.get(`${REACT_APP_BACKEND_URL}/returnVoucher/${deliveryNoteId}`);
-            const returnNote = response.data;
-                    
-            if (returnNote.length === 0) {
-                // Redirection vers la page du nouveau bon retour
-                window.location.href = `/returnVoucher/?deliveryNoteId=${deliveryNoteId}`;
-            } 
-        } catch (error) {
-            console.error('Erreur lors de la gestion du bon de retour : ', error);
-            setMessage({ text: 'Erreur lors de la gestion du bon de retour.', type: 'error' });
-            deleteMessage();
-        }
-    };
-    
-
     return (
         <div>
             <HeaderHome />
