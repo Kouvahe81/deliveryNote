@@ -115,11 +115,7 @@ const ListDeliveryNote = () => {
         const noteToEdit = deliveryNote.find(note => note.deliveryNoteId === deliveryNoteId);
         if (noteToEdit) {
             // Redirection vers le formulaire de modification avec les détails du bon de livraison
-            //window.location.href = `/finalDeliveryNote?deliveryNoteId=${deliveryNoteId}`;
-           // window.location.href = `${window.location.origin}/finalDeliveryNote?deliveryNoteId=${deliveryNoteId}`;
-            window.location.href = `${window.location.origin}/finalDeliveryNote?deliveryNoteId=${deliveryNoteId}&timestamp=${new Date().getTime()}`;
-
-
+            window.location.href = `./finalDeliveryNote?deliveryNoteId=${deliveryNoteId}`;
         }
     };
 
