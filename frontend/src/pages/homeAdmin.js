@@ -33,8 +33,8 @@ const HomeAdmin = () => {
                 <div className="box">
                     <h2>Fonctionnalités</h2>
                     <div className="links-container">
-                        <Link to="/deliveryNote" className="link">Bon de livraison</Link>
-                        <Link to="/returnVoucher" className="link">Bon de retour </Link>
+                        <Link to="/listDeliveryNote" className="link">Bon de livraison</Link>
+                        <Link to="/listReturnVoucher" className="link">Bon de retour </Link>
                         <Link to="/invoice" className="link">Facture</Link>
                     </div>
                 </div>

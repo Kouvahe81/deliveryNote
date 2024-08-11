@@ -315,7 +315,7 @@ const BonDeLivraison = () => {
         <div>
             <div className='main' style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div className='resto m-1'>
-                    <a href='/home'><img src={logo} alt="Logo" /></a>
+                    <a href='/'><img src={logo} alt="Logo" /></a>
                     <p className='m-0'>Brusselsteenweg 661</p>
                     <p className='m-0'>3090 Overijse</p>
                     <p className='m-0'>Numéro TVA: 0793745357</p>
