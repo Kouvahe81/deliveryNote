@@ -88,7 +88,7 @@ const ListReturnVoucher = () => {
                     
             if (returnNote.length === 0) {
                 // Redirection vers la page du nouveau bon retour
-                window.location.href = `/returnVoucher/?deliveryNoteId=${deliveryNoteId}`;
+                navigate(`/returnVoucher/?deliveryNoteId=${deliveryNoteId}`);
             } 
         } catch (error) {
             console.error('Erreur lors de la gestion du bon de retour : ', error);
@@ -144,7 +144,7 @@ const ListReturnVoucher = () => {
                                 </table>
                             </div>
                             <div className="d-flex justify-content-center mt-3">
-                                <button className="btn btn-primary" onClick={() => window.location.href = '/createDeliveryNote'}>Créer un bon de livraison</button>
+                                <button className="btn btn-primary" onClick={() => navigate('/createDeliveryNote')}>Créer un bon de livraison</button>
                             </div>
                         </div>
                     </div>

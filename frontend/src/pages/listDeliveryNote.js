@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import HeaderHome from "../components/navbar";
 import Loupe from '../images/Loupe.png';
 import { REACT_APP_BACKEND_URL } from "../config";
+const navigate = useNavigate();
 
 const ListDeliveryNote = () => {
     const [deliveryNote, setDeliveryNote] = useState([]);
@@ -115,7 +117,7 @@ const ListDeliveryNote = () => {
         const noteToEdit = deliveryNote.find(note => note.deliveryNoteId === deliveryNoteId);
         if (noteToEdit) {
             // Redirection vers le formulaire de modification avec les détails du bon de livraison
-            window.location.href = `/finalDeliveryNote?deliveryNoteId=${deliveryNoteId}`;
+            navigate(`/finalDeliveryNote?deliveryNoteId=${deliveryNoteId}`);
         }
     };
 
@@ -168,7 +170,7 @@ const ListDeliveryNote = () => {
                                 </table>
                             </div>
                             <div className="d-flex justify-content-center mt-3">
-                                <button className="btn btn-primary" onClick={() => window.location.href = '/createDeliveryNote'}>Créer un bon de livraison</button>
+                                <button className="btn btn-primary" onClick={() => navigate('/createDeliveryNote')}>Créer un bon de livraison</button>
                             </div>
                         </div>
                     </div>
