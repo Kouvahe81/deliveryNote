@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import HeaderHome from "../components/navbar";
 import Loupe from '../images/Loupe.png';
@@ -9,6 +10,7 @@ const ListReturnVoucher = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [message, setMessage] = useState({ text: '', type: '' });
     const [branches, setBranches] = useState([]);
+    const navigate = useNavigate();
 
     const deleteMessage = () => {
         setTimeout(() => {

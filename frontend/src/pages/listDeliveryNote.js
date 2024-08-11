@@ -4,13 +4,14 @@ import axios from "axios";
 import HeaderHome from "../components/navbar";
 import Loupe from '../images/Loupe.png';
 import { REACT_APP_BACKEND_URL } from "../config";
-const navigate = useNavigate();
+
 
 const ListDeliveryNote = () => {
     const [deliveryNote, setDeliveryNote] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [message, setMessage] = useState({ text: '', type: '' });
     const [branches, setBranches] = useState([]);
+    const navigate = useNavigate();
 
     const deleteMessage = () => {
         setTimeout(() => {
