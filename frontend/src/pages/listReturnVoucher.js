@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import HeaderHome from "../components/navbar";
 import Loupe from '../images/Loupe.png';
@@ -9,6 +10,7 @@ const ListReturnVoucher = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [message, setMessage] = useState({ text: '', type: '' });
     const [branches, setBranches] = useState([]);
+    const navigate = useNavigate();
 
     const deleteMessage = () => {
         setTimeout(() => {
@@ -88,7 +90,7 @@ const ListReturnVoucher = () => {
                     
             if (returnNote.length === 0) {
                 // Redirection vers la page du nouveau bon retour
-                window.location.href = `/returnVoucher/?deliveryNoteId=${deliveryNoteId}`;
+                navigate(`/returnVoucher/?deliveryNoteId=${deliveryNoteId}`);
             } 
         } catch (error) {
             console.error('Erreur lors de la gestion du bon de retour : ', error);
@@ -144,7 +146,7 @@ const ListReturnVoucher = () => {
                                 </table>
                             </div>
                             <div className="d-flex justify-content-center mt-3">
-                                <button className="btn btn-primary" onClick={() => window.location.href = '/createDeliveryNote'}>Créer un bon de livraison</button>
+                                <button className="btn btn-primary" onClick={() => navigate('/createDeliveryNote')}>Créer un bon de livraison</button>
                             </div>
                         </div>
                     </div>

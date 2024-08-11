@@ -5,6 +5,7 @@ import HeaderHome from "../components/navbar";
 import Loupe from '../images/Loupe.png';
 import { REACT_APP_BACKEND_URL } from "../config";
 
+
 const ListDeliveryNote = () => {
     const [deliveryNote, setDeliveryNote] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
