@@ -80,9 +80,7 @@ const Invoice = ({ onFileUploaded }) => {
                     }
                 }
             });
-    
-            console.log('Sommes par article :', sumByArticle);
-    
+        
             onFileUploaded({ jsonData, sumByArticle });
     
         } catch (error) {
@@ -113,6 +111,14 @@ const Invoice = ({ onFileUploaded }) => {
         });
     }
 
+    const isDebugMode = false;
+    isDebugMode && console.log(setinvoiceDate);
+    isDebugMode && console.log(setDueDate);
+    isDebugMode && console.log(setOrderNumber);
+    isDebugMode && console.log(setSelectedOffice);
+    isDebugMode && console.log(selectedOffice);
+    isDebugMode && console.log(setHeadOffice);
+
     const DiscrepancyModal = ({ discrepancies, onClose }) => (
         <div className="modal">
             <div className="modal-content">
@@ -141,35 +147,6 @@ const Invoice = ({ onFileUploaded }) => {
             </div>
         </div>
     );
-
-    // Hook pour récupérer les données de l'office principal
-    useEffect(() => {
-        const fetchHeadOfficeData = async () => {
-            try {
-                const response = await axios.get(`${REACT_APP_BACKEND_URL}/headOffice`);
-                const datas = response.data[0]               
-                setHeadOffice({
-                    name: datas.headOfficeName || '',
-                    address: datas.headOfficeAddress || '',
-                    postalCode: datas.headOfficePostalCode || '',
-                    city: datas.headOfficeCity || '',
-                    VATNumber: datas.headOfficeVATNumber || ''
-                });
-            } catch (error) {
-                console.error("Erreur lors de la récupération des données de l'office principal :", error);
-            }
-        };
-
-        fetchHeadOfficeData();
-    }, []);
-
-    useEffect(() => {
-        if (startDate && endDate) {
-            fetchInvoiceData(startDate, endDate);
-        }
-    }, [startDate, endDate]);
-
-    
 /*
     const fetchInvoiceData = async (startDate, endDate) => {
         try {
@@ -221,8 +198,8 @@ const Invoice = ({ onFileUploaded }) => {
         return discrepancies;
     };
     
-    // Fonction pour récupérer les données de la facture et gérer les divergences
-    const fetchInvoiceData = async (startDate, endDate, excelQuantities) => {
+    // Utilisation de `useCallback` pour mémoriser `fetchInvoiceData`
+    const fetchInvoiceData = useCallback(async (startDate, endDate, excelQuantities) => {
         try {
             const response = await axios.get(`${REACT_APP_BACKEND_URL}/invoice`, {
                 params: { startDate, endDate }
@@ -249,9 +226,15 @@ const Invoice = ({ onFileUploaded }) => {
             console.error('Erreur lors de la récupération des données : ', error);
             setMessage('Erreur lors de la récupération des données.');
         }
-    };
-    
-    
+    }, []); // Ajoutez ici des dépendances si nécessaires, par exemple REACT_APP_BACKEND_URL si celui-ci est susceptible de changer
+
+    // Utilisation de `useEffect` pour exécuter `fetchInvoiceData`
+    useEffect(() => {
+        if (startDate && endDate) {
+            fetchInvoiceData(startDate, endDate);  // Appel de la fonction mémorisée
+        }
+    }, [startDate, endDate, fetchInvoiceData]);  // `fetchInvoiceData` est maintenant une dépendance du `useEffect`
+
     const handlePrintInvoice = () => {
         if (invoiceData.length === 0) {
             setMessage('Impossible d\'imprimer la facture. Vérifiez que les données sont correctes.');
