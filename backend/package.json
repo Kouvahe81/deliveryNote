@@ -1,4 +1,22 @@
 {
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Cette application web à pour but de permettre: l'émission des bons de livraison et factures, des représentations graphiques des ventes",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kouvahe81/deliveryNote.git"
+  },
+  "author": "Serge Folly KOUVAHE",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Kouvahe81/deliveryNote/issues"
+  },
+  "homepage": "https://github.com/Kouvahe81/deliveryNote#readme",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

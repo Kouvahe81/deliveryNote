@@ -63,7 +63,7 @@ const CreatePerson = () => {
     // Fonction pour charger les fonctions disponibles depuis le serveur
     const fetchFunction = async () => {
         try {
-            const response = await axios.get(`htt${REACT_APP_BACKEND_URL}/personFunction`);
+            const response = await axios.get(`${REACT_APP_BACKEND_URL}/personFunction`);
             setFunction_id(response.data);
         } catch (error) {
             console.error('Erreur lors du chargement des fonctions:', error);

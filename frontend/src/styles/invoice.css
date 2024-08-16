@@ -1,0 +1,81 @@
+.invoice-container {
+    width: 80%;
+    margin: 0 auto;
+    font-family: Arial, sans-serif;
+}
+
+.header, .payment-info, .address-section, .invoice-table, .total-section, .footer {
+    margin-bottom: 20px;
+}
+
+.company-info, .contact-info, .payment-method, .invoice-details, .address-left, .address-right {
+    display: inline-block;
+    vertical-align: top;
+    width: 48%;
+}
+
+.header .contact-info {
+    text-align: right;
+}
+
+.payment-info .invoice-details {
+    text-align: right;
+}
+
+.address-section {
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+.address-section {
+    display: flex;
+    justify-content: space-between; /* Aligne les divs gauche et droite à gauche et à droite */
+    align-items: flex-start; /* Aligne les éléments en haut si les contenus ont des hauteurs différentes */
+    padding: 20px; /* Optionnel : ajoute un espace autour du contenu */
+}
+
+.address-left,
+.address-right {
+    flex: 1; /* Permet à chaque div d'occuper un espace égal */
+    margin: 0 10px; /* Optionnel : ajoute un espace entre les deux divs */
+}
+
+.address-left {
+    text-align: left; /* Aligne le texte à gauche */
+}
+
+.address-right  {
+    text-align: right; /* Aligne le texte à droite */
+}
+
+.invoice-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.invoice-table th, .invoice-table td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+}
+
+.total-section {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+}
+
+.total-section .total-left {
+    text-align: left;
+}
+
+.total-section .total-right {
+    text-align: right;
+}
+
+.footer {
+    text-align: center;
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+}

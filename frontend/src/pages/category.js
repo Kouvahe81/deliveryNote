@@ -4,18 +4,21 @@ import HeaderHome from "../components/navbar";
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Loupe from '../images/Loupe.png';
-import '../styles/category.css'
+//import '../styles/category.css'
 import { REACT_APP_BACKEND_URL } from "../config";
     
-    const PersonFunction = () => {
-        const [personFunction, setPersonFunction] = useState([]);
+    const Category = () => {
+        const [category, setCategory] = useState([]);
         const [searchTerm, setSearchTerm] = useState('');
         const [message, setMessage] = useState({ text: '', type: '' });
         const [showModal, setShowModal] = useState(false);
-        const [selectedPersonFunction, setSelectedPersonFunction] = useState(null);
-        const [functionName, setFunctionName] = useState('');
+        const [selectedCategory, setSelectedCategory] = useState(null);
+        const [vatRate, setVatRate] = useState([]);
+        //const [categoryId, setCategoryId] = useState('');
+        const [categoryName, setCategoryName] = useState('');
+        const [vatRateId, setVatRateId] = useState('');
         const [isFocused, setIsFocused] = useState(false);
-      
+    
         const deleteMessage = () => {
             setTimeout(() => {
                 resetMessages();
@@ -30,9 +33,10 @@ import { REACT_APP_BACKEND_URL } from "../config";
         };
     
         const validationForm = () => {
-            const nameValue = functionName.trim().toUpperCase();
-                        
-            if (nameValue === '') {
+            const nameValue = categoryName.trim().toUpperCase();
+            const rateId = vatRateId;
+            
+            if (nameValue === ''|| rateId === false) {
                 setMessage({ text: 'Veuillez remplir tous les champs SVP.', type: 'error' });
                 deleteMessage();
                 return false;
@@ -42,35 +46,37 @@ import { REACT_APP_BACKEND_URL } from "../config";
             }
         };
     
-        const handleDeleteFunction = async (functionId) => {
-            const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer cette fonction ?");
-          
+        const handleDeleteCategory = async (categoryId) => {
+            const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer cette catégorie ?");
             if (confirmDelete) {
-              try {
-                await axios.delete(`${REACT_APP_BACKEND_URL}/personFunction/${functionId}`);
-                
-                listPersonFunctions();
-                setMessage({ text: 'Cette fonction a été supprimée avec succès.', type: 'success' });
-              } catch (error) {
-                console.error("Erreur lors de la suppression de la fonction :", error);
-                await setMessage({ text: 'Erreur lors de la suppression de la fonction.', type: 'error' });
-              }
+                try {
+                    await axios.delete(`${REACT_APP_BACKEND_URL}/category/${categoryId}`);
+                    // Mettre à jour la liste des catégories après la suppression réussie
+                    listCategories();
+                    setMessage({ text: 'La catégorie a été supprimé avec succès.', type: 'success' });
+                } catch (error) {
+                    console.error("Erreur lors de la suppression du produit :", error);
+                    setMessage({ text: 'Erreur lors de la suppression de la catégorie.', type: 'error' });
+                }
             }
             deleteMessage();
-          };
-          
-        const handleOpenModal = (persFunction) => {
-            setSelectedPersonFunction(persFunction);
+        };
+    
+        const handleOpenModal = (category) => {
+            setSelectedCategory(category);
             setShowModal(true);
-            setFunctionName(persFunction.functionName);
+            setCategoryName(category.categoryName);
+            setVatRateId(category.vatRateId);
         };
     
         const handleCloseModal = () => {
             setShowModal(false);
-            setFunctionName('')
+            setCategoryName('');
+            setVatRateId('');
+            
         };
     
-        const handleUpdateFunction = async () => {
+        const handleUpdateCategory = async () => {
             const isValid = validationForm();
     
             if (!isValid) {
@@ -79,18 +85,18 @@ import { REACT_APP_BACKEND_URL } from "../config";
                 return;
             }
             const confirmUpdate = window.confirm("Êtes-vous sûr de vouloir enregistrer les modifications ?");
-        
             if (confirmUpdate) {
                 try {
-                    await axios.put(`${REACT_APP_BACKEND_URL}/personFunction/${selectedPersonFunction.functionId}`, {
-                        functionName,
+                    await axios.put(`${REACT_APP_BACKEND_URL}/category/${selectedCategory.categoryId}`, {
+                        categoryName,
+                        vatRateId
                     });
-                    listPersonFunctions();
-                    setMessage({ text: `${functionName} a été mis à jour avec succès.`, type: 'success' });
+                    listCategories();
+                    setMessage({ text: `${categoryName} a été mis à jour avec succès.`, type: 'success' });
                     handleCloseModal();
                 } catch (error) {
-                    console.error("Erreur lors de la mise à jour de la fonction :", error);
-                    setMessage({ text: 'Erreur lors de la mise à jour de la fonction.', type: 'error' });
+                    console.error("Erreur lors de la mise à jour de la catégorie :", error);
+                    setMessage({ text: 'Erreur lors de la mise à jour de la catégorie.', type: 'error' });
                 }
             }
             deleteMessage();
@@ -101,33 +107,45 @@ import { REACT_APP_BACKEND_URL } from "../config";
             setSearchTerm(term);
         };
     
-        const listPersonFunctions = async() => {
-            await axios.get(`${REACT_APP_BACKEND_URL}/personFunction`)
+        const listCategories = () => {
+            axios.get(`${REACT_APP_BACKEND_URL}/category`)
                 .then(response => {
-                    setPersonFunction(response.data);
+                    setCategory(response.data);
                 })
                 .catch(error => {
-                    console.error('Erreur lors de la récupération des fonctions: ', error);
+                    console.error('Erreur lors de la récupération des catégories: ', error);
                 });
         };
+
+        const listVatRate = () => {
+            axios.get(`${REACT_APP_BACKEND_URL}/vatRate`)
+                .then(response => {
+                    setVatRate(response.data);
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la récupération des catégories: ', error);
+                });
+        };    
+    
         useEffect(() => {
-            listPersonFunctions();
+            listCategories();
+            listVatRate();
         }, []);
     
         useEffect(() => {
-            let url = `${REACT_APP_BACKEND_URL}/personFunction`;
+            let url = `${REACT_APP_BACKEND_URL}/category`;
             axios.get(url)
                 .then(response => {
-                    let filteredpersonFunction = response.data;
+                    let filteredcategory = response.data;
                     if (searchTerm.trim() !== '') {
-                        filteredpersonFunction = filteredpersonFunction.filter(personFunction =>
-                            personFunction.functionName.toLowerCase().includes(searchTerm.toLowerCase())
+                        filteredcategory = filteredcategory.filter(category =>
+                            category.categoryName.toLowerCase().includes(searchTerm.toLowerCase())
                         );
                     }
-                    setPersonFunction(filteredpersonFunction);
+                    setCategory(filteredcategory);
                 })
                 .catch(error => {
-                    console.error('Erreur lors de la récupération des fonctions : ', error);
+                    console.error('Erreur lors de la récupération des categories : ', error);
                 });
         }, [searchTerm]);
     
@@ -160,18 +178,20 @@ import { REACT_APP_BACKEND_URL } from "../config";
                                     <thead>
                                         <tr>
                                             <th>Nom</th>
+                                            <th>TVA</th>
                                             <th colSpan="2" className="text-center">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {personFunction.map((persFunction) => (
-                                            <tr key={persFunction.functionId}>
-                                                <td>{persFunction.functionName}</td>
+                                        {category.map((category) => (
+                                            <tr key={category.categoryId}>
+                                                <td>{category.categoryName}</td>
+                                                <td>{category.vatRateTaxe}%</td>
                                                 <td>
-                                                    <button className="btn btn-warning" onClick={() => handleOpenModal(persFunction)}>Modifier</button>
+                                                    <button className="btn btn-warning" onClick={() => handleOpenModal(category)}>Modifier</button>
                                                 </td>
                                                 <td>
-                                                    <button className="btn btn-danger" onClick={() => {handleDeleteFunction(persFunction.functionId);}}>Supprimer</button>
+                                                    <button className="btn btn-danger" onClick={() => {handleDeleteCategory(category.categoryId);}}>Supprimer</button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -188,10 +208,10 @@ import { REACT_APP_BACKEND_URL } from "../config";
                     dialogClassName="dialog-modal"
                 >
                     <Modal.Header className="d-flex justify-content-center">
-                        <Modal.Title> Fonction </Modal.Title>
+                        <Modal.Title> Catégorie </Modal.Title>
                     </Modal.Header>
                                     <Modal.Body>
-                        {selectedPersonFunction && (
+                        {selectedCategory && (
                             <div>
                                 {message.text && (
                                     <div className={`d-flex justify-content-center alert ${message.type === 'error' ? 'alert-danger' : 'alert-success'}`}>
@@ -201,12 +221,31 @@ import { REACT_APP_BACKEND_URL } from "../config";
                                 <div className="form-group mb-3">
                                     <input
                                         className={`form-control ${isFocused ? 'focused' : ''}`}
-                                        id="functionName"
+                                        id="categoryName"
                                         placeholder="Nom"
-                                        value={functionName}
+                                        value={categoryName}
                                         onFocus={handleFocus}
-                                        onChange={(e) => setFunctionName(e.target.value)}
+                                        onChange={(e) => setCategoryName(e.target.value)}
                                     />
+                                </div>
+                                
+                                
+                                <div className="form-group mb-3">
+                                    <select
+                                        className={`form-control ${isFocused ? 'focused' : ''}`}
+                                        id='vatRateId'
+                                        value={vatRateId}
+                                        onFocus={handleFocus}
+                                        onChange={(e) => setVatRateId(e.target.value)}
+                                        required
+                                    >
+                                        <option value='' disabled> Sélectionnez un taux TVA </option>
+                                        {vatRate.map((rate) => (
+                                            <option key={rate.vatRateId} value={rate.vatRateId}>
+                                                {rate.vatRateTaxe}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
                         )}
@@ -215,7 +254,7 @@ import { REACT_APP_BACKEND_URL } from "../config";
                         <Button variant="secondary" onClick={handleCloseModal}>
                             Fermer
                         </Button>
-                        <Button className="d-flex justify-content-center" variant="success" onClick={handleUpdateFunction}>
+                        <Button className="d-flex justify-content-center" variant="success" onClick={handleUpdateCategory}>
                             Enregistrer
                         </Button>
                     </Modal.Footer>
@@ -224,5 +263,5 @@ import { REACT_APP_BACKEND_URL } from "../config";
         );
     };
     
-export default PersonFunction;
+    export default Category;
     
