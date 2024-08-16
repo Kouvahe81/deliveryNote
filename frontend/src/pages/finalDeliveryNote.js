@@ -1,4 +1,5 @@
 import React, { useState, useEffect , useCallback} from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Modal from 'react-modal';
@@ -37,6 +38,8 @@ const FinalDeliveryNote = () => {
     const queryParams = new URLSearchParams(location.search);
     const deliveryNoteId = queryParams.get('deliveryNoteId');
 
+    const navigate = useNavigate();
+
     // Fonction pour récupérer les données du bon de livraison et des produits
     const fetchFinalDeliveryNote = async (id) => {
         try {
@@ -49,7 +52,7 @@ const FinalDeliveryNote = () => {
                                
                 // Extraire les informations des produits
                 const productsList = data.map(item => ({
-                    productId: item.productId,
+                    productId: item.productID,
                     description: item.productName,
                     quantity: item.deliveryQuantity,
                     price: item.productPrice,
@@ -65,7 +68,6 @@ const FinalDeliveryNote = () => {
                     branchCity: deliveryNoteInfo.branchCity,
                     branchPostalCode: deliveryNoteInfo.branchPostalCode,
                 });
-
                 // Remplir les lignes de produits
                 setSelectedProducts(productsList);
                 setDeliveryNoteNumber(deliveryNoteInfo.deliveryNoteNumber);
@@ -113,7 +115,6 @@ const FinalDeliveryNote = () => {
                     product.productName.toLowerCase().includes(searchTerm.toLowerCase())
                 );
             }
-
             setProducts(filteredProducts.slice(0, 5));
         } catch (error) {
             console.error('Erreur lors de la récupération des produits : ', error);
@@ -152,12 +153,31 @@ const FinalDeliveryNote = () => {
         }
     };
 
-    // Fonction pour supprimer un produit
-    const handleDeleteProduct = (index) => {
-        const updatedProducts = [...selectedProducts];
-        updatedProducts.splice(index, 1);
-        setSelectedProducts(updatedProducts);
-    };
+    const handleDeleteProduct = async (index) => {
+        try {
+            const productIdToDelete = selectedProducts[index].productId;  // Récupérer productId
+            const deliveryNoteId = deliveryNote.deliveryNoteId;  // Assure-toi que deliveryNoteId est bien défini dans l'état
+    
+            if (!productIdToDelete || !deliveryNoteId) {
+                throw new Error('Les paramètres productId ou deliveryNoteId sont manquants');
+            }
+    
+            // Supprimer le produit de la base de données avec les deux paramètres
+            await axios.delete(`${REACT_APP_BACKEND_URL}/to_list/${deliveryNoteId}/${productIdToDelete}`);
+    
+            // Supprimer le produit de la liste locale
+            const updatedProducts = [...selectedProducts];
+            updatedProducts.splice(index, 1);
+            setSelectedProducts(updatedProducts);
+    
+            setMessage({ text: 'Produit supprimé avec succès.', type: 'success' });
+            resetMessages();
+        } catch (error) {
+            console.error('Erreur lors de la suppression du produit:', error);
+            setMessage({ text: 'Erreur lors de la suppression du produit.', type: 'error' });
+            resetMessages();
+        }
+    };  
 
     // Ouvrir le modal pour ajouter un produit
     const openModal = () => {
@@ -192,7 +212,14 @@ const FinalDeliveryNote = () => {
     const addProductToDelivery = (productId, description, price) => {
         const isProductExist = selectedProducts.some(product => product.productId === productId);
         if (!isProductExist) {
-            setSelectedProducts([...selectedProducts, { productId, description, price, quantity: deliveryQuantity, returnQuantity: 0 }]);
+            setSelectedProducts([...selectedProducts, {
+                productId, 
+                description, 
+                price, quantity: 
+                deliveryQuantity, 
+                returnQuantity: 0,
+                isNew: true
+             }]);
             setMessage('');
         } else {
             setMessage({ text: 'Le produit existe déjà dans la liste !', type: 'error' });
@@ -232,43 +259,74 @@ const FinalDeliveryNote = () => {
         isDebugMode && console.log(setDeliveryNoteStatus);
         isDebugMode && console.log(setDeliveryQuantity);
         isDebugMode && console.log(setDeliveryNote(deliveryNote));
-
-
+     
     const handleButtonClick = async () => {
         if (!validateForm()) {
             setMessage({ text: 'Veuillez remplir tous les champs requis.', type: 'error' });
             return;
         }
-    
+                
         try {
             if (!deliveryNoteId) {
                 throw new Error('ID du bon de livraison non défini');
             }
-    
+            const { data: { headOfficeId } } = await axios.get(`${REACT_APP_BACKEND_URL}/branch/${branchId}`);
+            
             // Mise à jour du bon de livraison
             await axios.put(`${REACT_APP_BACKEND_URL}/deliveryNote/${deliveryNoteId}`, {
                 deliveryNoteNumber,
                 deliveryDate,
                 deliveryNoteStatus,
+                branchId,
+                headOfficeId,
                 products: selectedProducts.map(product => ({
-                    productId: product.productId || null,
-                    deliveryQuantity: product.quantity,
-                    returnQuantity: product.returnQuantity || 0,
-                    productPrice: product.price
+                productId: product.productId || null,
+                deliveryQuantity: product.quantity,
+                returnQuantity: product.returnQuantity || 0,
+                productPrice: product.price
                 }))
             });
-    
+                   
+            // Mettre à jour les produits existants
+            for (const product of selectedProducts) {
+                if (!product.isNew && product.productId) {
+                    // Mise à jour des produits existants
+                    await axios.put(`${REACT_APP_BACKEND_URL}/to_list`, {
+                        productId: product.productId,
+                        deliveryQuantity: product.quantity,
+                        returnQuantity: product.returnQuantity || 0,
+                        productPrice: product.price,
+                        deliveryNoteId: deliveryNoteId
+                    });
+                }
+            }
+            // Filtrer les produits mis à jour pour ne garder que les nouveaux
+            const newProducts = selectedProducts.filter(product => product.isNew && product.productId);
+        
+            // Ajouter les nouveaux produits
+            if (newProducts.length > 0) {
+                await axios.post(`${REACT_APP_BACKEND_URL}/to_list`, {
+                    deliveryNoteId: deliveryNoteId,
+                    products: newProducts.map(product => ({
+                        deliveryQuantity: product.quantity,
+                        returnQuantity: product.returnQuantity || 0,
+                        productPrice: product.price,
+                        productId: product.productId
+                    }))
+                });
+            }
+        
             setMessage({ text: 'Bon de livraison mis à jour avec succès', type: 'success' });
             resetMessages();
         } catch (error) {
             console.error('Erreur lors de la mise à jour du bon de livraison ou des produits :', error);
             setMessage({ text: 'Erreur lors de la mise à jour.', type: 'error' });
+            resetMessages();
         }
-    };
-    
-    
-     // Fonction pour imprimer ou retourner à la liste des bons de livraison
-     const handlePrint = async () => {
+    }; 
+       
+    // Fonction pour imprimer ou retourner à la liste des bons de livraison
+    const handlePrint = async () => {
         try {
             // Mise à jour du statut avant l'impression
             await axios.put(`${REACT_APP_BACKEND_URL}/deliveryNote/${deliveryNoteId}`, {
@@ -277,6 +335,7 @@ const FinalDeliveryNote = () => {
                 deliveryNoteStatus: true  // Mettre à jour le statut ici
             });
             setMessage({ text: ``, type: 'success' });
+            resetMessages();
             
             // Masquer les éléments avant l'impression
             hideButton(); // Masquer le bouton "Ajouter un produit"
@@ -319,12 +378,12 @@ const FinalDeliveryNote = () => {
                     cell.innerText = 'Actions';  
                 }
             }
-    
             // Retour à la liste des bons de livraison
-            window.location.href = '/listDeliveryNote';
+            navigate('/listDeliveryNote');
         } catch (error) {
             console.error("Erreur lors de l'impression du bon de livraison :", error);
             setMessage({ text: 'Erreur lors de l\'impression du bon de livraison.', type: 'error' });
+            resetMessages();
         }
     };
     
@@ -332,7 +391,7 @@ const FinalDeliveryNote = () => {
         <div>
             <div className='main' style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div className='resto m-1'>
-                    <a href='/home'><img src={logo} alt="Logo" /></a>
+                    <a href='/'><img src={logo} alt="Logo" /></a>
                     <p className='m-0'>Brusselsteenweg 661</p>
                     <p className='m-0'>3090 Overijse</p>
                     <p className='m-0'>Numéro TVA: 0793745357</p>
@@ -455,14 +514,14 @@ const FinalDeliveryNote = () => {
                     </tbody>
                 </table>
                 <div className="text-center">
-                    <button className='btn btn-primary m-2' onClick={handleButtonClick} disabled={deliveryNoteStatus}> Valider </button>
-                    <button className="btn btn-secondary" onClick={handlePrint}>Imprimer</button>
-                </div>
                 {message && (
                     <div id="error-message" className={`${message.type === 'error' ? 'text-danger' : 'text-success'} mb-3 col-12`}>
                         {message.text}
                     </div>
                 )}
+                    <button className='btn btn-primary m-2' onClick={handleButtonClick} disabled={deliveryNoteStatus}> Valider </button>
+                    <button className="btn btn-secondary" onClick={handlePrint}>Imprimer</button>
+                </div>
             </div>
         </div>
     );

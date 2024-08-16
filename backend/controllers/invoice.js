@@ -13,7 +13,6 @@ exports.getSalesReport = async (req, res) => {
             startDate = firstDayOfPreviousMonth.toISOString().split('T')[0];
             endDate = lastDayOfPreviousMonth.toISOString().split('T')[0];
         }
-
         const query = `
             SELECT 
                 c.categoryName,

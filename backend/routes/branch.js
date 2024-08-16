@@ -6,6 +6,9 @@ const responseMiddleware = require('../middleware/responseMiddleware');
 // Route pour lister les branches
 router.get('/branch',branchCtrl.listBranchs,responseMiddleware);
 
+// Route recherche headOfficeID
+router.get('/branch/:branchId', branchCtrl.getHeadOfficeIdByBranchId,responseMiddleware);
+
 // Route de la nouvelle catégorie
 router.post('/branch', branchCtrl.createBranch,responseMiddleware);
 

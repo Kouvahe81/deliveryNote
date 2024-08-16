@@ -198,8 +198,8 @@ const BonDeLivraison = () => {
                 returnQuantity: product.returnQuantity,
                 productPrice: product.price
             }));
-
-            await axios.post(`${REACT_APP_BACKEND_URL}/toList`, {
+            
+            await axios.post(`${REACT_APP_BACKEND_URL}/to_list`, {
                 deliveryNoteId: deliveryNoteId,
                 products: productsToAdd
             });
@@ -315,7 +315,7 @@ const BonDeLivraison = () => {
         <div>
             <div className='main' style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div className='resto m-1'>
-                    <a href='/'><img src={logo} alt="Logo" /></a>
+                    <a href='/home'><img src={logo} alt="Logo" /></a>
                     <p className='m-0'>Brusselsteenweg 661</p>
                     <p className='m-0'>3090 Overijse</p>
                     <p className='m-0'>Numéro TVA: 0793745357</p>

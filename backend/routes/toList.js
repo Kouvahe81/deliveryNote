@@ -7,13 +7,18 @@ const responseMiddleware = require('../middleware/responseMiddleware');
 router.get('/toList',toListCtrl.listTo_list,responseMiddleware);
 
 // Route de la nouvelle catégorie
-router.post('/toList', toListCtrl.createToList,responseMiddleware);
+router.post('/to_list', toListCtrl.createToList,responseMiddleware);
 
-// Route de la suppression
-router.delete('/to_list/:deliveryNoteId', toListCtrl.deleteToList, responseMiddleware)
+// Route de la suppression d'une ligne produit
+router.delete('/to_list/:deliveryNoteId/:productId', toListCtrl.deleteToList, responseMiddleware);
+
+
+// Route pour supprimer un produit par ID
+router.delete('/to_list/:productId', toListCtrl.deleteProduct);
+
 
 //Route de la mise à jour
-router.put('/toList', toListCtrl.updateToList, responseMiddleware);
+router.put('/to_list', toListCtrl.updateToList, responseMiddleware);
 
 
 

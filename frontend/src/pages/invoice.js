@@ -14,14 +14,6 @@ const generateDisplayDate = () => {
     return `${day}-${month}-${year}`;
 };
 
-let currentInvoiceNumber = -1; // Variable pour suivre le dernier numéro utilisé
-
-const generateInvoiceNumber = () => {
-    currentInvoiceNumber += 1; // Incrémenter le numéro
-    const paddedNumber = String(currentInvoiceNumber).padStart(4, '0'); // Ajouter des zéros au début
-    return `${paddedNumber}`;
-};
-
 const generateOrderNumber = (invoiceNumber) => {
     const currentDate = new Date();
     const month = String(currentDate.getMonth() + 1).padStart(2, '0');
@@ -45,88 +37,139 @@ const Invoice = ({ onFileUploaded }) => {
     const [endDate, setEndDate] = useState('');
     const [invoiceData, setInvoiceData] = useState([]);
     const [message, setMessage] = useState('');
-    const [invoicedate, setinvoicedate] = useState(generateDisplayDate());
+    const [invoiceDate, setinvoiceDate] = useState(generateDisplayDate());
     const [dueDate, setDueDate] = useState(generateDueDate());
-    const [invoiceNumber, setInvoiceNumber] = useState(generateInvoiceNumber());
+    const [invoiceNumber, setInvoiceNumber] = useState(0);
     const [orderNumber, setOrderNumber] = useState(generateOrderNumber(invoiceNumber));
-    const [headOffice, setHeadOffice] = useState([]);
+    const [headOffice, setHeadOffice] = useState({name: '', address: '', postalCode: '', city: '', VATNumber: ''});
     const [selectedOffice, setSelectedOffice] = useState({});
     const [fileName, setFileName] = useState(""); 
-    
-    const onDrop = useCallback(async (acceptedFiles) => {
-    const file = acceptedFiles[0];
-    setFileName(file.name); // Met à jour le nom du fichier
-    try {
-      const jsonData = await readExcelFile(file);
-      console.log(jsonData);
-      
-      // Créer un objet pour stocker les sommes par numéro d'article
-      const sumByArticleNumber = {};
+    const [discrepancies, setDiscrepancies] = useState([]);
+    const [showModal, setShowModal] = useState(false);
 
-      // Parcourir les données et calculer les sommes par numéro d'article
-      jsonData.forEach(row => {
-        const articleNumber = row[3]; // Supposons que le numéro d'article est à l'indice 3 du tableau
-        const quantitySold = parseInt(row[8]); // Supposons que la quantité vendue est à l'indice 8 du tableau
-        if (articleNumber && !isNaN(quantitySold)) { // Vérifier que le numéro d'article et la quantité vendue sont présents
-          if (sumByArticleNumber.hasOwnProperty(articleNumber)) {
-            sumByArticleNumber[articleNumber] += quantitySold;
-          } else {
-            sumByArticleNumber[articleNumber] = quantitySold;
-          }
-        }
-      });
 
-      // Afficher les sommes par numéro d'article
-      console.log('Sommes par numéro d\'article :', sumByArticleNumber);
-
-      // Appeler la fonction de rappel avec les données Excel et les sommes calculées
-      onFileUploaded({ jsonData, sumByArticleNumber });
-
-    } catch (error) {
-      console.error("Une erreur s'est produite lors de la lecture du fichier :", error);
-    }
-  }, [onFileUploaded]);
-
-  const { getRootProps, getInputProps } = useDropzone({ onDrop, accept: '.xlsx' });
-
-  const readExcelFile = async (file) => {
-    return new Promise((resolve, reject) => {
-      const fileReader = new FileReader();
-      
-      fileReader.onload = (e) => {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-        resolve(jsonData);
-      };
-  
-      fileReader.onerror = (error) => {
-        reject(error);
-      };
-  
-      fileReader.readAsArrayBuffer(file);
-    });
-}
-
-    const listHeadOffice = async () => {
-        try {
-            const response = await axios.get(`${REACT_APP_BACKEND_URL}/headOffice`);
-            setHeadOffice(response.data);
-        } catch (error) {
-            console.error('Erreur lors de la récupération des informations de la maison mère : ', error);
-        }
+    const generateInvoiceNumber = () => {
+        setInvoiceNumber(prevInvoiceNumber => {
+            const newInvoiceNumber = prevInvoiceNumber + 1;
+            return newInvoiceNumber;
+        });
     };
+    
+    // Fonction de gestion du drop de fichiers
+    const onDrop = useCallback(async (acceptedFiles) => {
+        const file = acceptedFiles[0];
+        setFileName(file.name);
+    
+        try {
+            const jsonData = await readExcelFile(file);
+    
+            const sumByArticle = {};
+    
+            jsonData.forEach(row => {
+                const articleNumber = row[3]; // Supposons que le code article est à l'indice 3
+                const productName = row[4];   // Supposons que le nom du produit est à l'indice 4
+                const quantitySold = parseInt(row[8]); // Supposons que la quantité vendue est à l'indice 8
+    
+                if (articleNumber && productName && !isNaN(quantitySold)) {
+                    const key = `${articleNumber}-${productName}`;
+    
+                    if (sumByArticle.hasOwnProperty(key)) {
+                        sumByArticle[key] += quantitySold;
+                    } else {
+                        sumByArticle[key] = quantitySold;
+                    }
+                }
+            });
+    
+            console.log('Sommes par article :', sumByArticle);
+    
+            onFileUploaded({ jsonData, sumByArticle });
+    
+        } catch (error) {
+            console.error("Une erreur s'est produite lors de la lecture du fichier :", error);
+        }
+    }, [onFileUploaded]);
 
-    const today = new Date().toISOString().split('T')[0]; // Date du jour en format YYYY-MM-DD
+    const { getRootProps, getInputProps } = useDropzone({ onDrop, accept: '.xlsx' });
+
+    const readExcelFile = async (file) => {
+        return new Promise((resolve, reject) => {
+        const fileReader = new FileReader();
+        // Fonction pour lire le fichier Excel
+        fileReader.onload = (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+            resolve(jsonData);
+        };
+    
+        fileReader.onerror = (error) => {
+            reject(error);
+        };
+    
+        fileReader.readAsArrayBuffer(file);
+        });
+    }
+
+    const DiscrepancyModal = ({ discrepancies, onClose }) => (
+        <div className="modal">
+            <div className="modal-content">
+                <h2>Divergences de Quantités</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Article</th>
+                            <th>Nom du produit</th>
+                            <th>Quantité dans la DB</th>
+                            <th>Quantité dans Excel</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {discrepancies.map((item, index) => (
+                            <tr key={index}>
+                                <td>{item.articleNumber}</td>
+                                <td>{item.productName}</td>
+                                <td>{item.dbQuantity}</td>
+                                <td>{item.excelQuantity}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                <button onClick={onClose}>Fermer</button>
+            </div>
+        </div>
+    );
+
+    // Hook pour récupérer les données de l'office principal
+    useEffect(() => {
+        const fetchHeadOfficeData = async () => {
+            try {
+                const response = await axios.get(`${REACT_APP_BACKEND_URL}/headOffice`);
+                const datas = response.data[0]               
+                setHeadOffice({
+                    name: datas.headOfficeName || '',
+                    address: datas.headOfficeAddress || '',
+                    postalCode: datas.headOfficePostalCode || '',
+                    city: datas.headOfficeCity || '',
+                    VATNumber: datas.headOfficeVATNumber || ''
+                });
+            } catch (error) {
+                console.error("Erreur lors de la récupération des données de l'office principal :", error);
+            }
+        };
+
+        fetchHeadOfficeData();
+    }, []);
 
     useEffect(() => {
-        listHeadOffice(); // Appel de la fonction pour récupérer la liste des bureaux
         if (startDate && endDate) {
             fetchInvoiceData(startDate, endDate);
         }
     }, [startDate, endDate]);
+
+    
 /*
     const fetchInvoiceData = async (startDate, endDate) => {
         try {
@@ -140,19 +183,16 @@ const Invoice = ({ onFileUploaded }) => {
         }
     };
 */
-    const handleOfficeChange = (e) => {
-        const officeId = e.target.value;  // Récupère l'ID sélectionné
-        const office = headOffice.find(o => o.headOfficeId === parseInt(officeId));  // Trouve l'objet bureau correspondant
-        setSelectedOffice(office || {});  // Met à jour l'état avec les informations du bureau sélectionné
-    };
     
-
+    // Fonction pour changer la date de début
     const handleStartDateChange = (e) => {
         setStartDate(e.target.value);
     };
 
+    // Fonction pour changer la date de fin avec validation
     const handleEndDateChange = (e) => {
         const selectedEndDate = e.target.value;
+        const today = new Date().toISOString().split('T')[0]; // Date du jour en format YYYY-MM-DD
         if (selectedEndDate > today) {
             setMessage('La date de fin ne peut pas dépasser la date du jour.');
         } else {
@@ -160,56 +200,62 @@ const Invoice = ({ onFileUploaded }) => {
         }
     };
 
-    const fetchExternalQuantities = async (startDate, endDate) => {
-        try {
-            const response = await axios.get(`${REACT_APP_BACKEND_URL}/external-quantities`, {
-                params: { startDate, endDate }
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Erreur lors de la récupération des quantités externes : ', error);
-            return [];
-        }
-    };
-
-    const compareQuantities = (invoiceData, externalQuantities) => {
-        const discrepancies = invoiceData.filter(item => {
-            const externalItem = externalQuantities.find(eq => eq.productName === item.categoryName);
-            return !externalItem || item.quantitySold !== externalItem.quantity;
+    // Fonction pour comparer les quantités entre les données de la facture et les quantités externes
+    const compareQuantities = (excelQuantities, dbQuantities) => {
+        const discrepancies = [];
+    
+        dbQuantities.forEach(dbItem => {
+            const key = `${dbItem.articleNumber}-${dbItem.productName}`;
+            const excelQuantity = excelQuantities[key];
+    
+            if (excelQuantity !== dbItem.quantitySold) {
+                discrepancies.push({
+                    productName: dbItem.productName,
+                    articleNumber: dbItem.articleNumber,
+                    dbQuantity: dbItem.quantitySold,
+                    excelQuantity: excelQuantity || 0 // Si la quantité Excel est absente, elle est considérée comme 0
+                });
+            }
         });
+    
         return discrepancies;
     };
-
-    const fetchInvoiceData = async (startDate, endDate) => {
+    
+    // Fonction pour récupérer les données de la facture et gérer les divergences
+    const fetchInvoiceData = async (startDate, endDate, excelQuantities) => {
         try {
-            const [invoiceResponse, externalQuantities] = await Promise.all([
-                axios.get(`${REACT_APP_BACKEND_URL}/invoice`, {
-                    params: { startDate, endDate }
-                }),
-                fetchExternalQuantities(startDate, endDate)
-            ]);
-
-            const discrepancies = compareQuantities(invoiceResponse.data, externalQuantities);
-
+            const response = await axios.get(`${REACT_APP_BACKEND_URL}/invoice`, {
+                params: { startDate, endDate }
+            });
+    
+            const dbQuantities = response.data.map(item => ({
+                productName: item.categoryName,
+                articleNumber: item.articleNumber, // Vous devrez vous assurer que l'articleNumber est inclus dans la requête SQL et dans la réponse
+                quantitySold: item.quantitySold // Assurez-vous que la quantité est correctement extraite dans votre requête SQL
+            }));
+    
+            const discrepancies = compareQuantities(excelQuantities, dbQuantities);
+    
             if (discrepancies.length > 0) {
                 setMessage('Les quantités ne correspondent pas pour certains produits. Facture non générée.');
-                setInvoiceData([]); // Vide les données de la facture si des divergences sont trouvées
+                setDiscrepancies(discrepancies); // Ajoutez un état pour stocker les divergences
+                setShowModal(true); // Affichez le modal automatiquement si les quantités ne correspondent pas
             } else {
-                setInvoiceData(invoiceResponse.data); // Affiche les données de la facture si tout est en ordre
+                setInvoiceData(response.data); // Affiche les données de la facture si tout est en ordre
                 setMessage(''); // Réinitialise le message d'erreur s'il y en avait un
             }
-
+    
         } catch (error) {
             console.error('Erreur lors de la récupération des données : ', error);
             setMessage('Erreur lors de la récupération des données.');
         }
     };
-
-    // Gestion des événements et autres parties du composant inchangées...
-
+    
+    
     const handlePrintInvoice = () => {
         if (invoiceData.length === 0) {
             setMessage('Impossible d\'imprimer la facture. Vérifiez que les données sont correctes.');
+            
         } else {
             window.print();
         }
@@ -217,6 +263,12 @@ const Invoice = ({ onFileUploaded }) => {
 
     return (
         <div className="invoice-container">
+            {showModal && (
+            <DiscrepancyModal 
+                discrepancies={discrepancies}
+                onClose={() => setShowModal(false)}
+            />
+        )}
             <div className="header">
                 <div className="payment-info">
                     <div className="payment-method">
@@ -225,9 +277,9 @@ const Invoice = ({ onFileUploaded }) => {
                     <div className="invoice-details">
                         <h2>FACTURE</h2>
                         <div>
-                            <p className='m-0'>Numéro de facture: {invoiceNumber}</p>
+                            <p className='m-0'>Numéro de facture: {generateInvoiceNumber()}</p>
                             <p className='m-0'>Commande : {orderNumber}</p>
-                            <p className='m-0'>Date de facturation: {invoicedate}</p>
+                            <p className='m-0'>Date de facturation: {invoiceDate}</p>
                             <p className='m-0'>Échéance: {dueDate}</p>
                             <p className='m-0'>Mode de paiement: Virement</p>
                         </div>
@@ -244,27 +296,13 @@ const Invoice = ({ onFileUploaded }) => {
                     <p className='m-0'>milad.italia10@hotmail.fr</p>
                 </div>
                 <div className="address-right">
-                    <select 
-                        id="officeSelect" 
-                        onChange={handleOfficeChange} 
-                        value={selectedOffice.headOfficeId || ''}
-                    >
-                        <option value="">Sélectionner un bureau</option>
-                        {headOffice.map(office => (
-                            <option key={office.headOfficeId} value={office.headOfficeId}>
-                                {office.headOfficeName}
-                            </option>
-                        ))}
-                    </select> <h3>{selectedOffice.headOfficeName || ''}</h3>
-                    
-                    <p className='m-0'>{selectedOffice.headOfficeAddress || ''}</p>
-                    <p className='m-0'>{selectedOffice.headOfficePostalCode || ''} {selectedOffice.headOfficeCity || ''}</p>
+                    <h3>{headOffice.name || ''}</h3>
+                    <p className='m-0'>{headOffice.address || ''}</p>
+                    <p className='m-0'>{headOffice.postalCode || ''} {headOffice.city || ''}</p>
                     <p className='m-0'>Belgique</p>
-                    <p className='m-0'>Numéro TVA: BE {selectedOffice.headOfficeVATNumber || ''}</p>
+                    <p className='m-0'>Numéro TVA: BE {headOffice.VATNumber}</p>
                 </div>
             </div>
-
-
             <div className="date-selection mb-3">
                 <label htmlFor="startDate">Date de début:</label>
                 <input
@@ -278,9 +316,7 @@ const Invoice = ({ onFileUploaded }) => {
                     type="date"
                     id="endDate"
                     value={endDate}
-                    defaultValue={today}
                     onChange={handleEndDateChange}
-                    max={today} 
                 />
             </div>
             
