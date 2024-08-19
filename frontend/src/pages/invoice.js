@@ -30,7 +30,7 @@ const generateDueDate = () => {
     return `${day}-${month}-${year}`;
 };
 
-const formatCurrency = (value) => `€ ${value.toFixed(2)}`;
+const formatCurrency = (value) => `€ ${value}`;
 
 const DiscrepancyModal = ({ discrepancies, onClose }) => (
     <div className="modal" onClick={onClose}>
@@ -78,6 +78,7 @@ const Invoice = ({ onFileUploaded }) => {
     const [details, setDetails] = useState([]);
     const [dbQuantities, setDbQuantities] = useState([]);
     const [excelQuantities, setExcelQuantities] = useState(null);
+    const [errorMessage, setErrorMessage] = useState(""); // Pour afficher les erreurs
     
     const today = new Date().toISOString().split('T')[0]; // Date d'aujourd'hui au format YYYY-MM-DD
 
@@ -125,11 +126,25 @@ const Invoice = ({ onFileUploaded }) => {
     
     // Fonction appelée lorsqu'un fichier est déposé dans la zone de dépôt
     const onDrop = async (acceptedFiles) => {
-        // Sélectionne le premier fichier de la liste des fichiers acceptés (ici, on suppose qu'il s'agit d'un fichier Excel)
-        const file = acceptedFiles[0]; 
+        // Réinitialise les messages d'erreur à chaque dépôt
+        setErrorMessage("");
+
+        // Vérifie que le fichier a bien l'extension .xlsx
+        const file = acceptedFiles[0];
         if (acceptedFiles.length > 0) {
-            setFileName(acceptedFiles[0].name);
-        }
+            // Vérifie le type du fichier pour s'assurer qu'il est bien un fichier Excel
+            const fileType = file.name.split('.').pop();
+            if (fileType !== 'xlsx' && fileType !== 'xls') {
+                // Si le fichier n'est ni .xlsx ni .xls, affiche un message d'erreur et réinitialise le fichier
+                setErrorMessage("Le fichier non valide; chargé un fichier Excel SVP ");
+                setFileName(""); // Supprime le fichier chargé
+                setExcelQuantities([]); // Réinitialise les données des quantités
+                return;
+            }
+
+        // Si le fichier est valide, met à jour le nom du fichier
+        setFileName(file.name);
+    }
         try {
             // Appelle la fonction readExcelFile pour lire et traiter le fichier Excel
             const excelData = await readExcelFile(file); 
@@ -279,19 +294,8 @@ const Invoice = ({ onFileUploaded }) => {
                         quantityInExcel: excelQuantity
                     });
                 }
-            } else {
-                // Si l'article n'existe pas dans la base de données
-                console.warn(`L'article ${excelItem.articleDescription} est absent de la base de données.`);
-            }
+            } 
         });
-    
-        // Affichage des résultats
-        if (discrepancies.length === 0) {
-            console.log("Toutes les quantités concordent.");
-        } else {
-            console.log("Les divergences de quantités sont : ", discrepancies);
-        }
-    
         return discrepancies;
     }
         
@@ -346,7 +350,31 @@ const Invoice = ({ onFileUploaded }) => {
         }
     };
 
+    // Fonction pour formater un nombre avec un séparateur de milliers en français
+    const formatNumberWithSeparator = (number) => {
+        // Convertir le montant en nombre flottant pour s'assurer du bon format
+    const montantFloat = parseFloat(number);
+
+    // Vérifier que le montant est un nombre valide
+    if (isNaN(montantFloat)) {
+        console.error("Montant invalide");
+        return null;
+    }
+
+    // Utiliser la méthode toLocaleString pour formater le montant en français
+    return montantFloat.toLocaleString('fr-FR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+    };
+
     const handleGenerateInvoice = async () => {
+        // Vérification que le fichier Excel et les dates sont définis
+    if (!fileName || !startDate || !endDate) {
+        console.error("Veuillez remplir les dates ou charger le fichier.");
+        setErrorMessage("Veuillez remplir les dates ou charger le fichier.");
+        return;
+    }
         
         if (!excelQuantities || !dbQuantities) {
             console.error("Les quantités Excel et DB doivent être chargées avant la comparaison.");
@@ -362,6 +390,8 @@ const Invoice = ({ onFileUploaded }) => {
             await fetchInvoiceData();
         }
     };
+
+    console.log('Nous avons: ',formatInvoiceNumber(1528950.25))
     
     const handlePrintInvoice = async () =>{}
     
@@ -379,7 +409,7 @@ const Invoice = ({ onFileUploaded }) => {
             <div className="header">
                 <div className="payment-info">
                     <div className="payment-method">
-                        <a href='/home'><img src={logo} alt="Logo" /></a>
+                        <a href='/'><img src={logo} alt="Logo" /></a>
                     </div>
                     <div className="invoice-details">
                         <h2>FACTURE</h2>
@@ -438,28 +468,31 @@ const Invoice = ({ onFileUploaded }) => {
                 <p>{fileName || 'Fichier Excel cliquez ici.'}</p>
             </div>
             {message && <div className="error-message">{message}</div>}
+            {errorMessage && (
+                <div className="error-message">{errorMessage}</div>
+            )}
     
             <div className="invoice-table">
                 <table>
                     <thead>
                         <tr>
-                            <th>Description</th>
-                            <th>Total</th>
-                            <th>Remise 12%</th>
-                            <th>Montant HT</th>
-                            <th>TVA</th>
-                            <th>Montant TTC</th>
+                            <th class="text-center">Description</th>
+                            <th class="text-center">Total</th>
+                            <th class="text-center">Remise 12%</th>
+                            <th class="text-center">Montant HT</th>
+                            <th class="text-center">TVA</th>
+                            <th class="text-center">Montant TTC</th>
                         </tr>
                     </thead>
                     <tbody>
                         {invoiceData.map((item, index) => (
                             <tr key={index}>
                                 <td>{item.categoryName}</td>
-                                <td>{(item.MontantVendu).toFixed(2)}</td>
-                                <td>{(item.Remise).toFixed(2)}</td>
-                                <td>{(item.MontantHT).toFixed(2)}</td>
-                                <td>{(item.TVA).toFixed(2)}</td>
-                                <td>{formatCurrency(item.MontantTTC)}</td>
+                                <td class="text-center">{formatNumberWithSeparator((item.MontantVendu))}</td>
+                                <td class="text-center">{formatNumberWithSeparator((item.Remise))}</td>
+                                <td class="text-center">{formatNumberWithSeparator((item.MontantHT))}</td>
+                                <td class="text-center">{formatNumberWithSeparator((item.TVA))}</td>
+                                <td class="text-end">{(formatNumberWithSeparator(item.MontantTTC))}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -471,7 +504,7 @@ const Invoice = ({ onFileUploaded }) => {
                     <div className="total-right">
                         <p
                             style={{ fontWeight: 'bold', fontSize: '20px' }}
-                        >{formatCurrency(invoiceData.reduce((total, item) => total + item.MontantTTC, 0))}</p>
+                        >{formatCurrency(formatNumberWithSeparator(invoiceData.reduce((total, item) => total + item.MontantTTC, 0)))}</p>
                     </div>
                 </div>
     
