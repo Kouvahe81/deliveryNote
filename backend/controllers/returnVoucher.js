@@ -35,10 +35,6 @@ exports.getReturnVoucher= async (req, res) => {
 exports.createReturnVoucher = async (req, res) => {
     const { returnVoucherCode, returnVoucherDate,returnVoucherStatus } = req.body;
     const { deliveryNoteId } = req.params;
-    console.log('code', returnVoucherCode)
-    console.log('date', returnVoucherDate)
-    console.log('statut', returnVoucherStatus)
-    console.log('id', deliveryNoteId)
     
     if (!deliveryNoteId) {
         return res.status(400).json({ error: 'ID du bon de livraison manquant' });
@@ -78,7 +74,6 @@ exports.UpdateReturnVoucher = async (req, res) => {
             SET returnVoucherStatus = :returnVoucherStatus
             WHERE deliveryNoteId = :deliveryNoteId
         `;
-        //console.log('status',returnVoucherStatus)
         const [affectedRows] = await dbConnection.query(updateSql, {
             replacements: {
                 returnVoucherStatus,

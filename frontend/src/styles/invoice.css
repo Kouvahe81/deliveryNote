@@ -79,3 +79,41 @@
     border-top: 1px solid #ccc;
     padding-top: 10px;
 }
+
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    position: relative;
+    width: 80%;
+    max-width: 600px;
+}
+
+
+.close-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #f44336; /* Rouge pour attirer l'attention */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.close-button:hover {
+    background-color: #d32f2f; /* Couleur un peu plus sombre au survol */
+}

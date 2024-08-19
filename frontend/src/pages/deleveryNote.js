@@ -278,6 +278,7 @@ const BonDeLivraison = () => {
 
     const isDebugMode = false;
     isDebugMode && console.log(deliveryNoteId);
+    
     const handleFocus = () => {
         setIsFocused(true);
     };
