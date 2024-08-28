@@ -391,7 +391,9 @@ const FinalDeliveryNote = () => {
         <div>
             <div className='main' style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div className='resto m-1'>
-                    <a href='/'><img src={logo} alt="Logo" /></a>
+                <button onClick={() => navigate('/home')} style={{ background: 'none', border: 'none', padding: 0 }}>
+                    <img src={logo} alt="Logo" />
+                </button>
                     <p className='m-0'>Brusselsteenweg 661</p>
                     <p className='m-0'>3090 Overijse</p>
                     <p className='m-0'>Numéro TVA: 0793745357</p>

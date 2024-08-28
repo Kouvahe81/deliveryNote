@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
+import {useNavigate} from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import * as XLSX from 'xlsx';
 import axios from 'axios';
+import moment from 'moment';
 import { REACT_APP_BACKEND_URL } from '../config';
 import logo from '../images/Logo.png';
 import '../styles/invoice.css';
@@ -14,6 +16,7 @@ const generateDisplayDate = () => {
     return `${day}-${month}-${year}`;
 };
 
+// Fonction pour générer l'ordre
 const generateOrderNumber = (invoiceNumber) => {
     const currentDate = new Date();
     const month = String(currentDate.getMonth() + 1).padStart(2, '0');
@@ -61,6 +64,17 @@ const DiscrepancyModal = ({ discrepancies, onClose }) => (
     </div>
 );
 
+const ErrorModal = ({ message, onClose }) => {
+    return (
+        <div className="modal text-center">
+            <div className="modal-content">
+                <h3>Alerte</h3>
+                <p style={{ fontWeight: 'bold', fontSize: '20px' }} >{message}</p>
+                <button onClick={onClose} className="close-button">Fermer</button>
+            </div>
+        </div>
+    );
+};
 
 const Invoice = ({ onFileUploaded }) => {
     const [startDate, setStartDate] = useState('');
@@ -70,7 +84,7 @@ const Invoice = ({ onFileUploaded }) => {
     const [invoiceDate] = useState(generateDisplayDate());
     const [dueDate] = useState(generateDueDate());
     const [invoiceNumber, setInvoiceNumber] = useState(0);
-    const [orderNumber, setOrderNumber] = useState(generateOrderNumber(0));
+    const [orderNumber, setOrderNumber] = useState('');
     const [headOffice, setHeadOffice] = useState({id:'', name: '', address: '', postalCode: '', city: '', VATNumber: '' });
     const [fileName, setFileName] = useState("");
     const [discrepancies, setDiscrepancies] = useState([]);
@@ -79,50 +93,63 @@ const Invoice = ({ onFileUploaded }) => {
     const [dbQuantities, setDbQuantities] = useState([]);
     const [excelQuantities, setExcelQuantities] = useState(null);
     const [errorMessage, setErrorMessage] = useState(""); // Pour afficher les erreurs
+    const [errorModalMessage, setErrorModalMessage] = useState('');
+    const [showErrorModal, setShowErrorModal] = useState(false);
+    const [isInvoiceGenerated, setIsInvoiceGenerated] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    
+    
+
+    const navigate = useNavigate();
     
     const today = new Date().toISOString().split('T')[0]; // Date d'aujourd'hui au format YYYY-MM-DD
-
-    const deleteMessage = () => {
-        // Ajouter un délai pour réinitialiser le message après 5 secondes
-        setTimeout(() => {
-            resetMessages();
-        }, 5000)
-    }
-
-    // Fonction réinitialisation des messages
-    const resetMessages = () => {
-        setMessage({
-            text: '',
-            type: ''
-        });
-    };
    
-    const generateNewInvoiceNumber = useCallback(() => {
-        setInvoiceNumber((prevInvoiceNumber) => {
-            const newInvoiceNumber = prevInvoiceNumber + 1;
-            setOrderNumber(generateOrderNumber(newInvoiceNumber));
-            return newInvoiceNumber;
-        });
-    }, []);   
-
     useEffect(() => {
-        // Appeler generateNewInvoiceNumber lors du premier rendu du composant
-        generateNewInvoiceNumber();
-    }, [generateNewInvoiceNumber]);
+        // Récupération du prochain invoiceNumber depuis le backend
+        const fetchNextInvoiceNumber = async () => {
+            try {
+                const response = await axios.get(`${REACT_APP_BACKEND_URL}/invoiceId`);
+                const nextInvoiceNumber = response.data.nextInvoiceNumber;
 
+                // Génération de l'ordre de commande
+                const generatedOrderNumber = generateOrderNumber(nextInvoiceNumber);
+                setInvoiceNumber(nextInvoiceNumber)
+                setOrderNumber(generatedOrderNumber);
+            } catch (error) {
+                console.error('Erreur lors de la récupération du prochain numéro de facture :', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchNextInvoiceNumber();
+    }, [])   
+
+    //Fonction Date de fin
     const handleEndDateChange = (e) => {
         const selectedEndDate = e.target.value;
         const today = new Date().toISOString().split('T')[0];
-        
+
+        // Vérifier si la date de fin dépasse la date du jour
         if (selectedEndDate > today) {
-            setMessage('La date de fin ne peut pas dépasser la date du jour.');
-            deleteMessage();
-            resetMessages();
-        } else {
-            setEndDate(selectedEndDate);
-            setMessage(''); // Réinitialiser le message d'erreur si la date est valide
+            setErrorModalMessage('La date de fin ne peut pas dépasser la date du jour.');
+            setShowErrorModal(true);
+            return;
         }
+
+        // Vérifier si la date de fin est inférieure à la date de début
+        if (startDate && selectedEndDate < startDate) {
+            setErrorModalMessage('La date de fin ne peut pas être inférieure à la date de début.');
+            setShowErrorModal(true);
+            return;
+        }
+
+        // Si toutes les validations passent, définir la date de fin
+        setEndDate(selectedEndDate);
+        setErrorMessage(''); // Réinitialiser le message d'erreur si la date est valide
     };
+
     
     // Fonction appelée lorsqu'un fichier est déposé dans la zone de dépôt
     const onDrop = async (acceptedFiles) => {
@@ -136,7 +163,8 @@ const Invoice = ({ onFileUploaded }) => {
             const fileType = file.name.split('.').pop();
             if (fileType !== 'xlsx' && fileType !== 'xls') {
                 // Si le fichier n'est ni .xlsx ni .xls, affiche un message d'erreur et réinitialise le fichier
-                setErrorMessage("Le fichier non valide; chargé un fichier Excel SVP ");
+                setErrorModalMessage("Le fichier non valide; chargez un fichier Excel SVP ");
+                setShowErrorModal(true);
                 setFileName(""); // Supprime le fichier chargé
                 setExcelQuantities([]); // Réinitialise les données des quantités
                 return;
@@ -156,6 +184,27 @@ const Invoice = ({ onFileUploaded }) => {
         }
     };
 
+    // Vérifie si le fichier Excel a la même en tête 
+    const isValidHeader = (headerRow) => {
+        const expectedHeader = [
+            "Vendor number",
+            "Global PO number",
+            "store number",
+            "article number",
+            "vendor article number",
+            "article description",
+            "sales date",
+            "type",
+            "sold quantity",
+            "unit",
+            "Net sales price",
+            "Net sold value w/o vat",
+            "Currency"
+        ];
+        
+        return expectedHeader.every((col, index) => col === headerRow[index]);
+    };
+   
     const { getRootProps, getInputProps } = useDropzone({ onDrop, accept: '.xlsx' });
 
     // Fonction pour lire un fichier Excel et extraire les données nécessaires
@@ -175,6 +224,15 @@ const Invoice = ({ onFileUploaded }) => {
                 const sheet = workbook.Sheets[sheetName];
                 // Convertit les données de la feuille en format JSON (tableau de tableaux)
                 const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                // Vérifie l'en-tête avant de continuer
+                const headerRow = jsonData[0];
+                if (!isValidHeader(headerRow)) {
+                    setErrorModalMessage("En-tête du fichier Excel non conforme.");
+                    setShowErrorModal(true);
+                    setFileName(""); // Supprime le fichier chargé
+                    return;
+                }
 
                 // Appelle la fonction calculateProductSums pour calculer les quantités ou autres données
                 const sums = calculateProductSums(jsonData);
@@ -337,18 +395,9 @@ const Invoice = ({ onFileUploaded }) => {
 
     const isDebugMode = false;
     isDebugMode && console.log(setDetails);
-
-    // Fonction pour récupérer les données de facture
-    const fetchInvoiceData = async () => {
-        try {
-            // Ajouter les dates comme paramètres de requête
-            const url = `${REACT_APP_BACKEND_URL}/invoice?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
-            const response = await axios.get(url);
-            setInvoiceData(response.data);
-        } catch (error) {
-            console.error("Erreur lors de la récupération des données de la facture :", error);
-        }
-    };
+    isDebugMode && console.log(setMessage);
+    isDebugMode && console.log(setInvoiceData);
+    isDebugMode && console.log(loading);
 
     // Fonction pour formater un nombre avec un séparateur de milliers en français
     const formatNumberWithSeparator = (number) => {
@@ -368,32 +417,101 @@ const Invoice = ({ onFileUploaded }) => {
     });
     };
 
+    // Fonction pour récupérer les données de facture
+    const fetchInvoiceData = async () => {
+        try {
+            // Ajouter les dates comme paramètres de requête
+            const url = `${REACT_APP_BACKEND_URL}/invoice?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
+            const response = await axios.get(url);
+            setInvoiceData(response.data);
+        } catch (error) {
+            console.error("Erreur lors de la récupération des données de la facture :", error);
+        }
+    };
+    
     const handleGenerateInvoice = async () => {
         // Vérification que le fichier Excel et les dates sont définis
-    if (!fileName || !startDate || !endDate) {
-        console.error("Veuillez remplir les dates ou charger le fichier.");
-        setErrorMessage("Veuillez remplir les dates ou charger le fichier.");
-        return;
-    }
-        
-        if (!excelQuantities || !dbQuantities) {
-            console.error("Les quantités Excel et DB doivent être chargées avant la comparaison.");
+        if (!fileName || !startDate || !endDate) {
+            setErrorModalMessage("Veuillez remplir les dates ou charger le fichier.");
+            setShowErrorModal(true);
             return;
         }
-    
+        
+        if (!excelQuantities || !dbQuantities) {
+            setErrorModalMessage("Les quantités Excel et DB doivent être chargées avant la comparaison.");
+            setShowErrorModal(true);
+            return;
+        }
+            
         const discrepancies = compareQuantities(excelQuantities, dbQuantities);
         setDiscrepancies(discrepancies);
     
         if (discrepancies.length > 0) {
             setShowModal(true);
-        } else {
-            await fetchInvoiceData();
+            return;
         }
+        fetchInvoiceData()
+    
+        // Marquer que l'étape de génération est réussie, mais ne pas encore générer la facture
+        setIsInvoiceGenerated(true);
     };
 
-    console.log('Nous avons: ',formatInvoiceNumber(1528950.25))
+    const handlePrintInvoice = async () => {
+        if (!isInvoiceGenerated) {
+            setErrorModalMessage("Vous devez d'abord générer la facture.");
+            setShowErrorModal(true);
+            return;
+        }
+
+        try {
+            // Formatage des dates en 'yyyy-mm-dd'
+            const formattedInvoiceDate = moment(invoiceDate, 'DD-MM-YYYY').format('YYYY-MM-DD');
+            const formattedDueDate = moment(dueDate, 'DD-MM-YYYY').format('YYYY-MM-DD');
+            console.log('deb', startDate)
+            console.log('end', endDate)
+            setIsLoading(true);
+
+            // Insérer la facture dans la base de données
+            const response = await axios.post(`${REACT_APP_BACKEND_URL}/invoice`, {
+                invoiceNumber: invoiceNumber,
+                orderNumber: orderNumber,
+                invoiceDate: formattedInvoiceDate,
+                invoicePaymentDeadline: formattedDueDate,
+                headOfficeId: headOffice.id,
+                startDate,
+                endDate
+            });
+
+            if (response.status === 201) {
+                // La facture a été insérée, maintenant lancer l'impression
+                window.print();
+
+                // Réinitialiser les champs
+                setFileName('');
+                setStartDate('');
+                setEndDate('');
+                setExcelQuantities(null);
+                setDbQuantities(null);
+                setInvoiceNumber('');
+                setOrderNumber('');
+                setHeadOffice({});
+                setIsInvoiceGenerated(false);
+
+                // Rediriger vers la page d'accueil après l'impression
+                window.location.href = "/home";
+            } else {
+                setErrorModalMessage("Échec de l'insertion de la facture.");
+                setShowErrorModal(true);
+            }
+        } catch (error) {
+            console.error("Erreur lors de l'insertion de la facture :", error);
+            setErrorModalMessage("Erreur lors de l'insertion de la facture.");
+            setShowErrorModal(true);
+        } finally {
+            setIsLoading(false);
+        }
+    };
     
-    const handlePrintInvoice = async () =>{}
     
     return (
         <div className="invoice-container">
@@ -405,20 +523,30 @@ const Invoice = ({ onFileUploaded }) => {
                     onClose={() => setShowModal(false)}
                 />
             )}
+
+            {/* Affichage du modal d'erreur */}
+                {showErrorModal && (
+                    <ErrorModal 
+                        message={errorModalMessage}
+                        onClose={() => setShowErrorModal(false)}
+                    />
+                )}
             
             <div className="header">
                 <div className="payment-info">
                     <div className="payment-method">
-                        <a href='/'><img src={logo} alt="Logo" /></a>
+                        <button onClick={() => navigate('/home')}>
+                            <img src={logo} alt="Logo" />
+                        </button>
                     </div>
                     <div className="invoice-details">
                         <h2>FACTURE</h2>
                         <div>
-                            <p className='m-0'>Numéro de facture: {formatInvoiceNumber(invoiceNumber)} </p>
-                            <p className='m-0'>Commande : {orderNumber}</p>
-                            <p className='m-0'>Date de facturation: {invoiceDate}</p>
-                            <p className='m-0'>Échéance: {dueDate}</p>
-                            <p className='m-0'>Mode de paiement: Virement</p>
+                            <p className='m-0'><span class="fw-bold"> Numéro de facture: </span> {formatInvoiceNumber(invoiceNumber)} </p>
+                            <p className='m-0'> <span class="fw-bold"> Commande :</span> {orderNumber}</p>
+                            <p className='m-0'> <span class="fw-bold"> Date de facturation: </span> {invoiceDate}</p>
+                            <p className='m-0'> <span class="fw-bold"> Échéance: </span> {dueDate}</p>
+                            <p className='m-0'> <span class="fw-bold"> Mode de paiement: </span> Virement</p>
                         </div>
                     </div>
                 </div>
@@ -509,13 +637,15 @@ const Invoice = ({ onFileUploaded }) => {
                 </div>
     
                 <div className="footer">
-                    <button className='btn btn-primary m-2' onClick={handleGenerateInvoice}>Générer la facture</button>
-                    <button className='btn btn-secondary m-2' onClick={handlePrintInvoice}>Imprimer</button>
-                    <p>Merci pour votre confiance!</p>
-                    <p>Pour toute question ou information complémentaire, n'hésitez pas à nous contacter.</p>
+                    <div>
+                        <button onClick={handleGenerateInvoice} disabled={isLoading}>Générer la Facture</button>
+                    </div>
+                    <div>
+                        <button onClick={handlePrintInvoice} disabled={isLoading}>Imprimer</button>
+                    </div>          
                 </div>
             </div>
-    
+
             {/* Modal avec les divergences de quantités affichées */}
             {showModal && (
                 <DiscrepancyModal
@@ -524,7 +654,6 @@ const Invoice = ({ onFileUploaded }) => {
                     onClose={() => setShowModal(false)}
                 />
             )}
-    
         </div>
     );
     
