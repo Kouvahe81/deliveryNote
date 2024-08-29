@@ -136,58 +136,73 @@ exports.getSolQuantities = async (req, res) => {
 
 exports.createInvoice = async (req, res) => {
     const { invoiceNumber, invoiceDate, invoicePaymentDeadline, headOfficeId, startDate, endDate } = req.body;
-    
-    console.log('Num', invoiceNumber);
-    console.log('Date', invoiceDate);
-    console.log('Deadline', invoicePaymentDeadline);
-    console.log('Head', headOfficeId);
-    console.log('Start Date', startDate);
-    console.log('End Date', endDate);
 
     try {
         // Commencez une transaction
         await dbConnection.transaction(async (transaction) => {
-            
-            // Vérifier si une facture existe déjà pour une période chevauchante et le même siège social
-            const checkInvoiceSql = `
-                SELECT COUNT(*) AS Count
-                FROM Invoice
-                WHERE headOfficeId = :headOfficeId
-                AND (
-                    (invoiceStartDate <= ? AND invoiceEndDate >= ?) -- Chevauchement de période
-                );
-            `;
+
+            // Convertir les dates reçues en objets Date
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+
+            // Ajuster la date de début et de fin
+            const startFirstDay = new Date(start.getFullYear(), start.getMonth(), 1); // Premier jour du mois de start
+            const startLastDay = new Date(start.getFullYear(), start.getMonth() + 1, 0); // Dernier jour du mois de start
+
+            // Convertir les dates en format 'yyyy-mm-dd'
+            const formattedStartFirstDay = startFirstDay.toISOString().split('T')[0];
+            const formattedStartLastDay = startLastDay.toISOString().split('T')[0];
+            const formattedInvoiceDate = new Date(invoiceDate).toISOString().split('T')[0];
+
+            let checkInvoiceSql;
+            let replacements;
+
+            // Condition pour comparer les mois
+            if (start.getMonth() + 1 === new Date(invoiceDate).getMonth() + 1 && start.getFullYear() === new Date(invoiceDate).getFullYear()) {
+                // Mois et année identiques
+                checkInvoiceSql = `
+                    SELECT COUNT(*) AS Count
+                    FROM Invoice
+                    WHERE headOfficeId = ?
+                        AND invoiceDate BETWEEN ? AND ?;
+                `;
+                replacements = [headOfficeId, formattedStartFirstDay, formattedStartLastDay];
+            } else if ((start.getFullYear() < new Date(invoiceDate).getFullYear()) || (start.getFullYear() === new Date(invoiceDate).getFullYear() && start.getMonth() + 1 < new Date(invoiceDate).getMonth() + 1)) {
+                // Mois de début antérieur à celui de l'émission
+                checkInvoiceSql = `
+                    SELECT COUNT(*) AS Count
+                    FROM Invoice
+                    WHERE headOfficeId = ?
+                        AND invoiceDate BETWEEN ? AND ?;
+                `;
+                replacements = [headOfficeId, formattedStartFirstDay, formattedStartLastDay];
+            } else {
+                // Mois de début après celui de l'émission
+                return res.status(400).json({ error: 'La date de début ne peut pas être après la date d\'émission.' });
+            }
+
             const [results] = await dbConnection.query(checkInvoiceSql, {
-                bind: {
-                    HeadOfficeId: headOfficeId,
-                    NewStartDate: startDate,
-                    NewEndDate: endDate
-                },
+                replacements: replacements,  // Utilisation des paramètres dynamiques
                 type: Sequelize.QueryTypes.SELECT,
                 transaction,
             });
 
-            if (results.Count > 0) {
+            console.log('Query Results:', results);
+
+            if (results && results.Count > 0) {
                 // Si une facture existe déjà pour cette période et ce siège social, retournez une réponse appropriée
                 return res.status(400).json({ error: 'Une facture pour cette période et ce siège social existe déjà.' });
             }
 
             // Insérez la nouvelle facture
             const insertInvoiceSql = `
-                INSERT INTO Invoice (invoiceNumber, invoiceDate, invoicePaymentDeadline, headOfficeId, invoiceStartDate, invoiceEndDate)
-                VALUES (@InvoiceNumber, @InvoiceDate, @InvoicePaymentDeadline, @HeadOfficeId, @StartDate, @EndDate);
+                INSERT INTO Invoice (invoiceNumber, invoiceDate, invoicePaymentDeadline, headOfficeId )
+                VALUES (?, ?, ?, ?);
             `;
             await dbConnection.query(insertInvoiceSql, {
-                bind: {
-                    InvoiceNumber: invoiceNumber,
-                    InvoiceDate: invoiceDate,
-                    InvoicePaymentDeadline: invoicePaymentDeadline,
-                    HeadOfficeId: headOfficeId,
-                    StartDate: startDate,
-                    EndDate: endDate
-                },
+                replacements: [invoiceNumber, formattedInvoiceDate, invoicePaymentDeadline, headOfficeId], 
                 type: Sequelize.QueryTypes.INSERT,
-                transaction,  // Passer la transaction pour s'assurer que l'insertion est dans la transaction
+                transaction,
             });
 
             // Retourner une réponse de succès
@@ -198,4 +213,3 @@ exports.createInvoice = async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de l\'ajout de la facture.' });
     }
 };
-  

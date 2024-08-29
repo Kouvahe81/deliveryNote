@@ -467,8 +467,7 @@ const Invoice = ({ onFileUploaded }) => {
             // Formatage des dates en 'yyyy-mm-dd'
             const formattedInvoiceDate = moment(invoiceDate, 'DD-MM-YYYY').format('YYYY-MM-DD');
             const formattedDueDate = moment(dueDate, 'DD-MM-YYYY').format('YYYY-MM-DD');
-            console.log('deb', startDate)
-            console.log('end', endDate)
+            
             setIsLoading(true);
 
             // Insérer la facture dans la base de données
@@ -483,8 +482,22 @@ const Invoice = ({ onFileUploaded }) => {
             });
 
             if (response.status === 201) {
+                // Masquer les éléments avant l'impression
+                const dateSelection = document.querySelector('.date-selection');
+                const footer = document.querySelector('.footer');
+                const dropzone = document.querySelector('.dropzone');
+
+                if (dateSelection) dateSelection.style.display = 'none';
+                if (footer) footer.style.display = 'none';
+                if (dropzone) dropzone.style.display = 'none';
+
                 // La facture a été insérée, maintenant lancer l'impression
                 window.print();
+
+                // Réinitialiser les éléments après l'impression
+                if (dateSelection) dateSelection.style.display = 'block';
+                if (footer) footer.style.display = 'block';
+                if (dropzone) dropzone.style.display = 'block';
 
                 // Réinitialiser les champs
                 setFileName('');
@@ -500,12 +513,12 @@ const Invoice = ({ onFileUploaded }) => {
                 // Rediriger vers la page d'accueil après l'impression
                 window.location.href = "/home";
             } else {
-                setErrorModalMessage("Échec de l'insertion de la facture.");
+                setErrorModalMessage("Cette facture existe déjà !!!");
                 setShowErrorModal(true);
             }
         } catch (error) {
-            console.error("Erreur lors de l'insertion de la facture :", error);
-            setErrorModalMessage("Erreur lors de l'insertion de la facture.");
+            console.error(" Cette facture existe déjà !!! :", error);
+            setErrorModalMessage(" Cette facture existe déjà !!! ");
             setShowErrorModal(true);
         } finally {
             setIsLoading(false);
@@ -555,11 +568,11 @@ const Invoice = ({ onFileUploaded }) => {
             <div className="address-section">
                 <div className="address-left">
                     <h3>Petit Liban</h3>
-                    <p className='m-0'>Brusselsesteenweg 661</p>
+                    <p className='m-0'>Brusselsesteenweg 1050</p>
                     <p className='m-0'>3090 Overijse</p>
                     <p className='m-0'>Belgique</p>
-                    <p className='m-0'>+32485239505</p>
-                    <p className='m-0'>milad.italia10@hotmail.fr</p>
+                    <p className='m-0'>+32495200000</p>
+                    <p className='m-0'>milllll.it@hotmail.fr</p>
                 </div>
                 <div className="address-right">
                     <h3>{headOffice.name || ''}</h3>
@@ -638,7 +651,7 @@ const Invoice = ({ onFileUploaded }) => {
     
                 <div className="footer">
                     <div>
-                        <button onClick={handleGenerateInvoice} disabled={isLoading}>Générer la Facture</button>
+                        <button  className ='m-2 'onClick={handleGenerateInvoice} disabled={isLoading}>Générer la Facture</button>
                     </div>
                     <div>
                         <button onClick={handlePrintInvoice} disabled={isLoading}>Imprimer</button>
