@@ -146,7 +146,7 @@ const ListReturnVoucher = () => {
                                 </table>
                             </div>
                             <div className="d-flex justify-content-center mt-3">
-                                <button className="btn btn-primary" onClick={() => navigate('/createDeliveryNote')}>Créer un bon de livraison</button>
+                                <button className="btn btn-primary" onClick={() => navigate('/deliveryNote')}>Créer un bon de livraison</button>
                             </div>
                         </div>
                     </div>

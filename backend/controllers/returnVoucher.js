@@ -14,8 +14,8 @@ exports.getReturnVoucher= async (req, res) => {
           SELECT *
           FROM ReturnVoucher
           WHERE
-              deliveryNoteId = :deliveryNoteId
-          AND returnVoucherStatus = 1
+            deliveryNoteId = :deliveryNoteId
+            AND returnVoucherStatus = 1
       `;
 
       // Exécutez la requête en passant le paramètre
@@ -74,7 +74,6 @@ exports.UpdateReturnVoucher = async (req, res) => {
             SET returnVoucherStatus = :returnVoucherStatus
             WHERE deliveryNoteId = :deliveryNoteId
         `;
-        //console.log('status',returnVoucherStatus)
         const [affectedRows] = await dbConnection.query(updateSql, {
             replacements: {
                 returnVoucherStatus,

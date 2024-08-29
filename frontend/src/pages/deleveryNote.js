@@ -198,8 +198,8 @@ const BonDeLivraison = () => {
                 returnQuantity: product.returnQuantity,
                 productPrice: product.price
             }));
-
-            await axios.post(`${REACT_APP_BACKEND_URL}/toList`, {
+            
+            await axios.post(`${REACT_APP_BACKEND_URL}/to_list`, {
                 deliveryNoteId: deliveryNoteId,
                 products: productsToAdd
             });
@@ -278,6 +278,7 @@ const BonDeLivraison = () => {
 
     const isDebugMode = false;
     isDebugMode && console.log(deliveryNoteId);
+    
     const handleFocus = () => {
         setIsFocused(true);
     };

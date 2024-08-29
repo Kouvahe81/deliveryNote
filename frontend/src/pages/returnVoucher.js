@@ -43,7 +43,7 @@ const ReturnVoucher = () => {
                 const deliveryNoteInfo = data[0];
 
                 const productsList = data.map(item => ({
-                    productId: item.productId,
+                    productId: item.productID,
                     description: item.productName,
                     quantity: 0,
                     maxQuantity: item.deliveryQuantity, // Quantité chargée
@@ -123,33 +123,36 @@ const handleQuantityChange = (index, quantity) => {
             if (!deliveryNoteId) {
                 throw new Error('ID du bon de livraison non défini');
             }
-    
+               
+            // Mise à jour des produits dans le bon de livraison
+            for (const product of selectedProducts) {
+               
+                if (typeof product.returnQuantity === 'undefined') {
+                    console.error(`returnQuantity is undefined for product ${product.productName}`);
+                    continue; // Skip this product and continue with the next one
+                }
+                
+                try {
+                    await axios.put(`${REACT_APP_BACKEND_URL}/to_list`, {
+                        returnQuantity: product.returnQuantity || 0,
+                        productId: product.productId,
+                        deliveryNoteId
+                    });
+                   
+                } catch (error) {
+                    console.error(`Erreur lors de la mise à jour du produit ${product.productName}:`, error);
+                    setMessage({ text: `Erreur lors de la mise à jour du produit ${product.productName}.`, type: 'error' });
+                    deleteMessage();
+                    return; // Optionnel: Si on arrête la mise à jour des autres produits en cas d'erreur
+                }
+            }
+
             // Crée le bon de retour
             await axios.post(`${REACT_APP_BACKEND_URL}/returnVoucher/${deliveryNoteId}`, {
                 returnVoucherCode,
                 returnVoucherDate: voucherDate,
                 returnVoucherStatus,
             });
-    
-            // Mise à jour des produits dans le bon de livraison
-            for (const product of selectedProducts) {
-                if (typeof product.returnQuantity === 'undefined') {
-                    console.error(`returnQuantity is undefined for product ${product.productId}`);
-                    continue; // Skip this product and continue with the next one
-                }
-    
-                try {
-                    await axios.put(`${REACT_APP_BACKEND_URL}/toList`, {
-                        returnQuantity: product.returnQuantity,
-                        productId: product.productId,
-                        deliveryNoteId
-                    });
-                } catch (error) {
-                    console.error(`Erreur lors de la mise à jour du produit ${product.productId}:`, error);
-                    setMessage({ text: `Erreur lors de la mise à jour du produit ${product.productId}.`, type: 'error' });
-                    return; // Optionnel: Si vous voulez arrêter la mise à jour des autres produits en cas d'erreur
-                }
-            }
     
             setMessage({ text: 'Bon Retour créé avec succès', type: 'success' });
             resetMessages();
@@ -160,7 +163,6 @@ const handleQuantityChange = (index, quantity) => {
         }
     };
     
-     
     // Fonction pour imprimer ou retourner à la liste des bons de livraison
     const handlePrint = async () => {
         try {
@@ -240,6 +242,7 @@ const handleQuantityChange = (index, quantity) => {
                                     <input
                                         type="number"
                                         min="0"
+                                        step={1}
                                         max={product.maxQuantity} //Pour limiter directement dans l'input
                                         value={product.returnQuantity || product.quantity} // Affiche la quantité retournée ou la quantité actuelle
                                         onChange={(e) => handleQuantityChange(index, parseInt(e.target.value))}

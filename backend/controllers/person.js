@@ -16,7 +16,6 @@ exports.createPerson = async (req, res, next) => {
 
     if (checkPersonResults.length > 0) {
       // L'utilisateur existe déjà, renvoyer un message indiquant qu'il existe
-      console.log('L\'utilisateur existe déjà.');
       res.status(409).json({ message: 'L\'utilisateur existe déjà.' });
     } else {
       // L'utilisateur n'existe pas, procéder à l'insertion
@@ -56,7 +55,7 @@ exports.listPersons = async (req, res, next) => {
 // Recherche de mail
 exports.searchFunction = async (req, res, next) => {
   const { mail } = req.params;
-  console.log('mail:', mail);
+  
 
   // Requête de recherche
   const sql = 'SELECT p.*, f.* FROM person p INNER JOIN PersonFunction f ON p.[functionId] = f.[functionId] WHERE personEmail = ?';

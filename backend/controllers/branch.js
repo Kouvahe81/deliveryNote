@@ -1,5 +1,5 @@
 const {dbConnection } = require('../dbConfig');
-const { Sequelize } = require('sequelize');
+const { Sequelize, QueryTypes } = require('sequelize');
 
 // Fonction pour la liste des branches
 exports.listBranchs = async(req, res) => {
@@ -42,7 +42,6 @@ exports.createBranch = async (req, res) => {
   }
 };
 
-
 // Suppression d'une succursale
 exports.DeleteBranch = async (req, res) => {
   const {branchId } = req.params;
@@ -70,7 +69,7 @@ exports.UpdateBranch = async (req, res) => {
   // Requête de mise à jour
   const updateSql = 'UPDATE branch SET branchName = ?, branchAddress = ?, branchCity = ?, branchPostalCode = ?, headOfficeId = ?, branchCode = ? WHERE branchId = ?';
   const updateValues = [branchName, branchAddress, branchCity, branchPostalCode, headOfficeId, branchCode, branchId];
-
+  
   try {
     await dbConnection.query(updateSql, {
       replacements: updateValues,
@@ -80,5 +79,28 @@ exports.UpdateBranch = async (req, res) => {
   } catch (error) {
     console.error('Erreur lors de la mise à jour de la succursale :', error);
     res.status(500).json({ error: 'Erreur lors de la mise à jour de la succursale.' });
+  }
+};
+
+exports.getHeadOfficeIdByBranchId = async (req, res) => {
+  const { branchId } = req.params;
+
+  try {
+    const result = await dbConnection.query(
+      'SELECT headOfficeId, branchName, branchCode FROM branch WHERE branchId = ?',
+      {
+        replacements: [branchId],
+        type: QueryTypes.SELECT
+      }
+    );
+
+    if (result.length > 0) {
+      res.status(200).json(result[0]); 
+    } else {
+      res.status(404).json({ error: 'Succursale non trouvée' });
+    }
+  } catch (error) {
+    console.error('Erreur lors de la récupération du headOfficeId :', error);
+    res.status(500).json({ error: 'Erreur lors de la récupération du headOfficeId.' });
   }
 };

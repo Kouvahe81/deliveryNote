@@ -10,6 +10,7 @@ const branchRouter = require('./routes/branch')
 const deleveryNoteRouter = require('./routes/deliveryNote');
 const toListRouter = require('./routes/toList');
 const returnVoucherRoute = require('./routes/returnVoucher')
+const invoiceRoute = require('./routes/invoice')
 const app = express();
 
 // Ajout des en-têtes CORS
@@ -45,5 +46,6 @@ app.use('/', branchRouter);
 app.use('/', deleveryNoteRouter);
 app.use('/', toListRouter);
 app.use('/', returnVoucherRoute);
+app.use('/', invoiceRoute);
 
 module.exports = app;

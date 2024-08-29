@@ -10,6 +10,6 @@ router.get('/returnVoucher/:deliveryNoteId', returnVoucherCtrl.getReturnVoucher,
 router.post('/returnVoucher/:deliveryNoteId',returnVoucherCtrl.createReturnVoucher,responseMiddleware);
 
 // Route pour mettre le statut bon retour à jour
-router.post('/returnVoucher/:deliveryNoteId',returnVoucherCtrl.UpdateReturnVoucher,responseMiddleware);
+router.put('/returnVoucher/:deliveryNoteId',returnVoucherCtrl.UpdateReturnVoucher,responseMiddleware);
 
 module.exports = router;

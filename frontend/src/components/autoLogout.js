@@ -8,7 +8,7 @@ const AutoLogout = () => {
   const startTimer = useCallback(() => {
     timer.current = setTimeout(() => {
       logout({ returnTo: window.location.origin });
-    }, 5 * 60 * 1000); // 5 minutes en millisecondes
+    }, 60 * 60 * 1000); 
   }, [logout]);
 
   const resetTimer = useCallback(() => {

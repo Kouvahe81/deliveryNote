@@ -14,38 +14,34 @@ exports.listTo_list = async(req, res) => {
 
 // Requête POST pour ajouter des produits
 exports.createToList = async (req, res) => {
-    const { deliveryNoteId, products } = req.body;
+  const { deliveryNoteId, products } = req.body;
+  if (!deliveryNoteId || !Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({ error: 'Données invalides. Veuillez vérifier le bon de livraison et les produits.' });
+  }
+  try {
+      await dbConnection.transaction(async (transaction) => {
+          for (const product of products) {
+              const insertQuery = `
+                  INSERT INTO To_list (productId, deliveryNoteId, deliveryQuantity, returnQuantity, productPrice)
+                  VALUES (?, ?, ?, ?, ?)
+              `;
+              const insertValues = [product.productId, deliveryNoteId, product.deliveryQuantity, product.returnQuantity, product.productPrice];
+              
+              await dbConnection.query(insertQuery, {
+                  replacements: insertValues,
+                  type: dbConnection.QueryTypes.INSERT,
+                  transaction
+              });
+          }
+      });
 
-    // Validation des données reçues
-    if (!deliveryNoteId || !Array.isArray(products) || products.length === 0) {
-        return res.status(400).json({ error: 'Données invalides. Veuillez vérifier le bon de livraison et les produits.' });
-    }
-
-    try {
-        // Insérer plusieurs produits en une seule transaction
-        await dbConnection.transaction(async (transaction) => {
-            // Itération sur les produits et insertion dans la table To_list
-            for (const product of products) {
-                const insertQuery = `
-                    INSERT INTO To_list (productId, deliveryNoteId, deliveryQuantity, returnQuantity, productPrice)
-                    VALUES (?, ?, ?, ?, ?)
-                `;
-                const insertValues = [product.productId, deliveryNoteId, product.deliveryQuantity, product.returnQuantity, product.productPrice];
-                await dbConnection.query(insertQuery, {
-                    replacements: insertValues,
-                    type: dbConnection.QueryTypes.INSERT,
-                    transaction
-                });
-            }
-        });
-
-        res.status(201).json({ message: 'Les produits ont été ajoutés avec succès.' });
-    } catch (error) {
-        // Gestion des erreurs
-        console.error('Erreur lors de l\'ajout des produits:', error);
-        res.status(500).json({ error: 'Erreur lors de l\'ajout des produits.' });
-    }
+      res.status(201).json({ message: 'Les produits ont été ajoutés avec succès.' });
+  } catch (error) {
+      console.error('Erreur lors de l\'ajout des produits:', error);
+      res.status(500).json({ error: 'Erreur lors de l\'ajout des produits.' });
+  }
 };
+
 
 // Fonction pour mettre à jour la quantité d'un produit
 exports.updateQuantity = async (req, res) => {
@@ -72,50 +68,75 @@ exports.updateQuantity = async (req, res) => {
   }
 };
 
-// Fonction de suppression du détail du bon de livraison
 exports.deleteToList = async (req, res) => {
-  const { deliveryNoteId } = req.params;
+  const { deliveryNoteId, productId } = req.params;  // Récupérer deliveryNoteId et productId
 
-  // Requête pour la suppression
-  const deleteSql = 'DELETE FROM to_list WHERE deliveryNoteId = ?';
+  // Requête SQL pour supprimer une ligne spécifique basée sur deliveryNoteId et productId
+  const deleteSql = 'DELETE FROM to_list WHERE deliveryNoteId = ? AND productId = ?';
 
   try {
     const result = await dbConnection.query(deleteSql, {
-      replacements: [deliveryNoteId],
+      replacements: [deliveryNoteId, productId],  // Passer à la fois deliveryNoteId et productId
       type: Sequelize.QueryTypes.DELETE
     });
-    res.status(200).json({ message: 'Le détail du bon de livraison a été supprimé avec succès.' });
+    
+    res.status(200).json({ message: 'Le produit a été supprimé avec succès du bon de livraison.' });
   } catch (error) {
-    console.error('Erreur lors de la suppression du détail du bon de livraison :', error);
-    res.status(500).json({ error: 'Erreur lors de la suppression du détail du bon de livraison.' });
+    console.error('Erreur lors de la suppression du produit du bon de livraison :', error);
+    res.status(500).json({ error: 'Erreur lors de la suppression du produit du bon de livraison.' });
   }
 };
 
-// Mise à jour d'une succursale
 exports.updateToList = async (req, res) => {
-  const { returnQuantity, productId, deliveryNoteId } = req.body;
-
-  // Requête de mise à jour avec paramètres nommés pour SQL Server
-  const updateSql = `
-    UPDATE to_list 
-    SET returnQuantity = :returnQuantity 
-    WHERE productId = :productId 
-      AND deliveryNoteId = :deliveryNoteId
-  `;
+  const { productId, deliveryQuantity, returnQuantity, productPrice, deliveryNoteId } = req.body;
+  
+  if (!productId) {
+    console.error('Erreur : productId manquant');
+    return res.status(400).json({ error: 'productId manquant' });
+  }
 
   try {
-    // Exécution de la requête avec Sequelize et paramètres nommés
+    const updateSql = `
+      UPDATE to_list
+      SET  returnQuantity = ?
+      WHERE productId = ? AND deliveryNoteId = ?`;
+    const updateValues = [ returnQuantity, productId, deliveryNoteId];
+
     await dbConnection.query(updateSql, {
-      replacements: {
-        returnQuantity,
-        productId,
-        deliveryNoteId
-      },
-      type: Sequelize.QueryTypes.UPDATE
+      replacements: updateValues,
+      type: QueryTypes.UPDATE
     });
-    res.status(200).json({ message: `Produit ${productId} a été bien mis à jour` });
+    
+    res.status(200).json({ message: `Produit ${productId} mis à jour` });
   } catch (error) {
-    console.error('Erreur lors de la mise à jour du détail du bon de livraison :', error);
-    res.status(500).json({ error: 'Erreur lors de la mise à jour du détail du bon de livraison.' });
+    console.error('Erreur lors de la mise à jour de la ligne produit :', error);
+    res.status(500).json({ error: 'Erreur lors de la mise à jour de la ligne produit' });
+  }
+};
+
+// Fonction pour supprimer un produit 
+exports.deleteProduct = async (req, res) => {
+  const { productId } = req.params;
+  const deleteSql = `
+  DELETE FROM to_list
+  WHERE productId = :productId
+`;
+
+  try {
+    // Exécuter la requête SQL avec les paramètres
+    const result = await dbConnection.query(deleteSql, {
+      replacements: { productId },
+      type: Sequelize.QueryTypes.DELETE
+    });
+
+    // Vérifiez le nombre de lignes supprimées
+    if (result[1] === 0) {
+      return res.status(404).json({ message: 'Produit non trouvé.' });
+    }
+
+    res.status(200).json({ message: 'Produit supprimé avec succès.' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression du produit:', error);
+    res.status(500).json({ error: 'Erreur lors de la suppression du produit.' });
   }
 };
