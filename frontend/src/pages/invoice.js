@@ -99,8 +99,6 @@ const Invoice = ({ onFileUploaded }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [loading, setLoading] = useState(true);
     
-    
-
     const navigate = useNavigate();
     
     const today = new Date().toISOString().split('T')[0]; // Date d'aujourd'hui au format YYYY-MM-DD
@@ -111,7 +109,7 @@ const Invoice = ({ onFileUploaded }) => {
             try {
                 const response = await axios.get(`${REACT_APP_BACKEND_URL}/invoiceId`);
                 const nextInvoiceNumber = response.data.nextInvoiceNumber;
-
+                
                 // Génération de l'ordre de commande
                 const generatedOrderNumber = generateOrderNumber(nextInvoiceNumber);
                 setInvoiceNumber(nextInvoiceNumber)
@@ -342,6 +340,8 @@ const Invoice = ({ onFileUploaded }) => {
                 // Comparaison des quantités
                 const dbQuantity = Number(dbItem.QteVendu);
                 const excelQuantity = Number(excelItem.quantity);
+                console.log('Excel', excelQuantity)
+                console.log('DB', dbQuantity)
     
                 if (dbQuantity !== excelQuantity) {
                     // Ajouter à la liste des divergences si les quantités ne correspondent pas
@@ -548,9 +548,9 @@ const Invoice = ({ onFileUploaded }) => {
             <div className="header">
                 <div className="payment-info">
                     <div className="payment-method">
-                        <button onClick={() => navigate('/home')}>
-                            <img src={logo} alt="Logo" />
-                        </button>
+                    <button onClick={() => navigate('/home')} style={{ background: 'none', border: 'none', padding: 0 }}>
+                        <img src={logo} alt="Logo" />
+                    </button>
                     </div>
                     <div className="invoice-details">
                         <h2>FACTURE</h2>

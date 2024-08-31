@@ -17,6 +17,18 @@ const generateDisplayDate = () => {
     return `${day}-${month}-${year}`;
 };
 
+const ErrorModal = ({ message, onClose }) => {
+    return (
+        <div className="modal text-center">
+            <div className="modal-content">
+                <h3>Alerte</h3>
+                <p style={{ fontWeight: 'bold', fontSize: '20px' }} >{message}</p>
+                <button onClick={onClose} className="close-button">Fermer</button>
+            </div>
+        </div>
+    );
+};
+
 const FinalDeliveryNote = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [deliveryNote, setDeliveryNote] = useState(null);
@@ -37,6 +49,8 @@ const FinalDeliveryNote = () => {
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const deliveryNoteId = queryParams.get('deliveryNoteId');
+    const [errorModalMessage, setErrorModalMessage] = useState('');
+    const [showErrorModal, setShowErrorModal] = useState(false);
 
     const navigate = useNavigate();
 
@@ -147,8 +161,13 @@ const FinalDeliveryNote = () => {
 
     // Gestion du clic droit pour supprimer un produit
     const handleContextMenu = (event, index) => {
-        event.preventDefault();
-        if (window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
+        event.preventDefault();  // Empêche le menu contextuel par défaut
+        if (event.type !== 'contextmenu') return;  // S'assure que seul le clic droit est pris en compte
+
+        const productName = selectedProducts[index].description;  // Récupérer le nom du produit
+        const confirmMessage = `Êtes-vous sûr de vouloir supprimer "${productName}" ?`;
+
+        if (window.confirm(confirmMessage)) {
             handleDeleteProduct(index);
         }
     };
@@ -157,19 +176,19 @@ const FinalDeliveryNote = () => {
         try {
             const productIdToDelete = selectedProducts[index].productId;  // Récupérer productId
             const deliveryNoteId = deliveryNote.deliveryNoteId;  // Assure-toi que deliveryNoteId est bien défini dans l'état
-    
+
             if (!productIdToDelete || !deliveryNoteId) {
                 throw new Error('Les paramètres productId ou deliveryNoteId sont manquants');
             }
-    
+
             // Supprimer le produit de la base de données avec les deux paramètres
             await axios.delete(`${REACT_APP_BACKEND_URL}/to_list/${deliveryNoteId}/${productIdToDelete}`);
-    
+
             // Supprimer le produit de la liste locale
             const updatedProducts = [...selectedProducts];
             updatedProducts.splice(index, 1);
             setSelectedProducts(updatedProducts);
-    
+
             setMessage({ text: 'Produit supprimé avec succès.', type: 'success' });
             resetMessages();
         } catch (error) {
@@ -177,9 +196,8 @@ const FinalDeliveryNote = () => {
             setMessage({ text: 'Erreur lors de la suppression du produit.', type: 'error' });
             resetMessages();
         }
-    };  
-
-    // Ouvrir le modal pour ajouter un produit
+    };
+        // Ouvrir le modal pour ajouter un produit
     const openModal = () => {
         setModalIsOpen(true);
     };
@@ -209,25 +227,18 @@ const FinalDeliveryNote = () => {
     };
 
     // Fonction pour ajouter un produit au bon de livraison
-    const addProductToDelivery = (productId, description, price) => {
-        const isProductExist = selectedProducts.some(product => product.productId === productId);
+    const addProductToDelivery = (idProduct, description, price) => {
+        const isProductExist = selectedProducts.some(product => product.id === idProduct);
         if (!isProductExist) {
-            setSelectedProducts([...selectedProducts, {
-                productId, 
-                description, 
-                price, quantity: 
-                deliveryQuantity, 
-                returnQuantity: 0,
-                isNew: true
-             }]);
-            setMessage('');
+            setSelectedProducts([...selectedProducts, { id: idProduct, description, price, quantity: deliveryQuantity, returnQuantity: 0 }]);
         } else {
-            setMessage({ text: 'Le produit existe déjà dans la liste !', type: 'error' });
-            resetMessages();
+            setErrorModalMessage(" Ce produit existe déjà dans la liste !!!! ");
+            setShowErrorModal(true);
         }
-        setModalIsOpen(false);
+        setModalIsOpen(false);  // Fermer le modal de sélection de produit après l'ajout ou l'échec
     };
 
+    //Fonction pour valider un formulaire
     const validateForm = () => {
         return deliveryNoteNumber && deliveryDate && branchId && selectedProducts.length > 0;
     };   
@@ -332,6 +343,7 @@ const FinalDeliveryNote = () => {
             await axios.put(`${REACT_APP_BACKEND_URL}/deliveryNote/${deliveryNoteId}`, {
                 deliveryNoteNumber,
                 deliveryDate,
+                branchId,
                 deliveryNoteStatus: true  // Mettre à jour le statut ici
             });
             setMessage({ text: ``, type: 'success' });
@@ -389,21 +401,29 @@ const FinalDeliveryNote = () => {
     
     return (
         <div>
+             {/* Affichage du modal d'erreur */}
+             {showErrorModal && (
+                    <ErrorModal 
+                        message={errorModalMessage}
+                        onClose={() => setShowErrorModal(false)}
+                    />
+                )}
             <div className='main' style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div className='resto m-1'>
                 <button onClick={() => navigate('/home')} style={{ background: 'none', border: 'none', padding: 0 }}>
                     <img src={logo} alt="Logo" />
                 </button>
+                
                     <p className='m-0'>Brusselsteenweg 661</p>
                     <p className='m-0'>3090 Overijse</p>
                     <p className='m-0'>Numéro TVA: 0793745357</p>
                     <p className='m-0'>Contact: +32485239505</p>
                 </div>
                 <div className='branche m-1' style={{ width: '300px' }}>
-                    <p className='m-0'>Numéro de livraison : {deliveryNoteNumber}</p>
-                    <p className='m-0'>Date de livraison : {convertDateToDBFormat(deliveryDate)}</p>
+                    <p className='m-0'><span class="fw-bold"> Numéro de livraison : </span> {deliveryNoteNumber}</p>
+                    <p className='m-0'> <span class="fw-bold"> Date de livraison :</span> {convertDateToDBFormat(deliveryDate)}</p>
                     <div className="form-group d-flex align-items-center haut">
-                        <label htmlFor="branchCode" className="mr-2">Code client :</label>
+                        <label htmlFor="branchCode" className="mr-2"> <span class="fw-bold"> Code client : </span></label>
                         <select
                             className={`form-control custom-select ${isFocused ? 'focused' : ''}`}
                             id='branchCode'
@@ -412,7 +432,7 @@ const FinalDeliveryNote = () => {
                             onChange={handleBranchChange}
                             required
                         >
-                            <option value=''>Code</option>
+                            <option value=''> <span class="fw-bold"> Code </span></option>
                             {branches.map((branch) => (
                                 <option key={branch.branchId} value={branch.branchCode}>
                                     {branch.branchCode}
@@ -421,14 +441,14 @@ const FinalDeliveryNote = () => {
                         </select>
                     </div>
                     <div className='address-container'>
-                        <p className='address-label'>Adresse : {branchAddress}</p>
+                        <p className='address-label'> <span class="fw-bold"> Adresse :</span> {branchAddress}</p>
                         <div className='address-details'>
                             <div>{branchPostalCode} {branchCity}</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <h1 className="text-center mt-3">BON DE LIVRAISON</h1>
+            <h1 className="text-center mt-3"> BON DE LIVRAISON </h1>
             <div className="mx-5">
                 <button id="myButton"
                             className="btn" 
@@ -446,7 +466,7 @@ const FinalDeliveryNote = () => {
                 >
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h5 className="modal-title text-center">Sélectionner un produit</h5>
+                            <h5 className="modal-title text-center">Produit ...</h5>
                             <button type="button" className="close" onClick={closeModal}>
                                 <span>&times;</span>
                             </button>
@@ -502,8 +522,13 @@ const FinalDeliveryNote = () => {
                                     />
                                 </td>
                                 <td class="centered-column">€ {(product.price * product.quantity).toFixed(2)}</td>
-                                <td class="centered-column">
-                                    <button className="btn btn-danger" onClick={() => handleDeleteProduct(index)}>Supprimer</button>
+                                <td className="centered-column">
+                                    <button
+                                        className="btn btn-danger"
+                                        onContextMenu={(event) => handleContextMenu(event, index)}
+                                    >
+                                        Supprimer
+                                    </button>
                                 </td>
                             </tr>
                         ))}

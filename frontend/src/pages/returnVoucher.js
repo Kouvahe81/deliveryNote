@@ -1,5 +1,5 @@
 import React, { useState, useEffect,useCallback} from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate} from 'react-router-dom';
 import axios from 'axios';
 import logo from '../images/Logo.png';
 import '../styles/category.css';
@@ -27,8 +27,8 @@ const ReturnVoucher = () => {
     const [branchAddress, setBranchAddress] = useState('');
     const [branchCity, setBranchCity] = useState('');
     const [branchPostalCode, setBranchPostalCode] = useState('');
+    const navigate = useNavigate();
     
-
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const deliveryNoteId = queryParams.get('deliveryNoteId');
@@ -78,15 +78,12 @@ const ReturnVoucher = () => {
         }
     }, [deliveryNoteId, fetchFinalDeliveryNote]);
 
-    const isDebugMode = false;
-    isDebugMode && console.log(setIsDisabled);
-    isDebugMode && console.log(deliveryNote);
-    isDebugMode && console.log(branchId);
-    
+    /*
     const convertDateToDBFormat = (dateString) => {
         const [day, month, year] = dateString.split('-');
         return `${year}-${month}-${day}`;
     };
+    */
 
     // Fonction pour réinitialiser les messages d'erreur
     const resetMessages = () => {
@@ -96,20 +93,26 @@ const ReturnVoucher = () => {
     };
 
     // Fonction pour gérer le changement de quantité d'un produit
-const handleQuantityChange = (index, quantity) => {
-    const updatedProducts = [...selectedProducts];
-    const maxQuantity = updatedProducts[index].maxQuantity;
+    const handleQuantityChange = (index, quantity) => {
+        const updatedProducts = [...selectedProducts];
+        const maxQuantity = updatedProducts[index].maxQuantity;
 
-    if (quantity > maxQuantity) {
-        setMessage({ text: 'La quantité de retour ne peut excéder la quantité livrée.', type: 'error' });
-        resetMessages();
-    } else {
-        updatedProducts[index].returnQuantity = quantity; // Met à jour returnQuantity avec quantity
-        setSelectedProducts(updatedProducts);
-        setMessage(''); // Réinitialiser le message en cas de valeur valide
-    }
-};
+        if (quantity > maxQuantity) {
+            setMessage({ text: 'La quantité de retour ne peut excéder la quantité livrée.', type: 'error' });
+            resetMessages();
+        } else {
+            updatedProducts[index].returnQuantity = quantity; // Met à jour returnQuantity avec quantity
+            setSelectedProducts(updatedProducts);
+            setMessage(''); // Réinitialiser le message en cas de valeur valide
+        }
+    };
 
+    const isDebugMode = false;
+    isDebugMode && console.log(setIsDisabled);
+    isDebugMode && console.log(deliveryNote);
+    isDebugMode && console.log(branchId);
+    isDebugMode && console.log(returnVoucherStatus);
+    
     const deleteMessage = () => {
         setTimeout(() => {
             resetMessages();
@@ -117,8 +120,7 @@ const handleQuantityChange = (index, quantity) => {
     }
             
     const handleButtonClick = async () => {
-        const voucherDate = convertDateToDBFormat(returnVoucherDate);
-    
+        //const voucherDate = convertDateToDBFormat(returnVoucherDate);
         try {
             if (!deliveryNoteId) {
                 throw new Error('ID du bon de livraison non défini');
@@ -143,17 +145,9 @@ const handleQuantityChange = (index, quantity) => {
                     console.error(`Erreur lors de la mise à jour du produit ${product.productName}:`, error);
                     setMessage({ text: `Erreur lors de la mise à jour du produit ${product.productName}.`, type: 'error' });
                     deleteMessage();
-                    return; // Optionnel: Si on arrête la mise à jour des autres produits en cas d'erreur
+                    //return; // Optionnel: Si on arrête la mise à jour des autres produits en cas d'erreur
                 }
-            }
-
-            // Crée le bon de retour
-            await axios.post(`${REACT_APP_BACKEND_URL}/returnVoucher/${deliveryNoteId}`, {
-                returnVoucherCode,
-                returnVoucherDate: voucherDate,
-                returnVoucherStatus,
-            });
-    
+            }    
             setMessage({ text: 'Bon Retour créé avec succès', type: 'success' });
             resetMessages();
         } catch (error) {
@@ -167,10 +161,11 @@ const handleQuantityChange = (index, quantity) => {
     const handlePrint = async () => {
         try {
             // Mettre à jour le statut du bon retour à TRUE (1) après l'impression
-            await axios.post(`${REACT_APP_BACKEND_URL}/returnVoucher/${deliveryNoteId}`, {
+            await axios.put(`${REACT_APP_BACKEND_URL}/returnVoucher/${deliveryNoteId}`, {
                 returnVoucherStatus: true
             });
-
+            deleteMessage();
+            resetMessages();
         // Mettre à jour l'état local
         setReturnVoucherStatus(true);
             // Masquer les boutons
@@ -183,7 +178,8 @@ const handleQuantityChange = (index, quantity) => {
             window.print();
 
             // Retour à la liste des bons de livraison
-            window.location.href = '/listDeliveryNote';
+            navigate('/listDeliveryNote');
+            
         } catch (error) {
             console.error("Erreur lors de l'impression du bon de livraison :", error);
             setMessage({ text: 'Erreur lors de l\'impression du bon de livraison.', type: 'error' });
@@ -194,17 +190,17 @@ const handleQuantityChange = (index, quantity) => {
         <div>
             <div className='main' style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div className='resto m-1'>
-                    <a href='/'><img src={logo} alt="Logo" /></a>
+                    <a href='/home'><img src={logo} alt="Logo" /></a>
                     <p className='m-0'>Brusselsteenweg 661</p>
                     <p className='m-0'>3090 Overijse</p>
                     <p className='m-0'>Numéro TVA: 0793745357</p>
                     <p className='m-0'>Contact: +32485239505</p>
                 </div>
                 <div className='branche m-1' style={{ width: '300px' }}>
-                <p className='m-0'>Numéro du retour : {returnVoucherCode}</p>
-                    <p className='m-0'>Date de livraison : {returnVoucherDate}</p>
+                <p className='m-0'> <span class="fw-bold"> Numéro du retour :</span> {returnVoucherCode}</p>
+                    <p className='m-0'> <span class="fw-bold"> Date de livraison : </span> {returnVoucherDate}</p>
                     <div className="form-group d-flex align-items-center haut">
-                        <label htmlFor="branchCode" className="mr-2">Code client :</label>
+                        <label htmlFor="branchCode" className="mr-2"> <span class="fw-bold"> Code client :</span></label>
                         <input
                             className={`custom-select }`}
                             id='branchCode'
@@ -216,7 +212,7 @@ const handleQuantityChange = (index, quantity) => {
                         </input>
                     </div>
                     <div className='address-container'>
-                        <p className='address-label'>Adresse : {branchAddress}</p>
+                        <p className='address-label'> <span class="fw-bold"> Adresse : </span> {branchAddress}</p>
                         <div className='address-details'>
                             <div>{branchPostalCode} {branchCity}</div>
                         </div>
@@ -268,15 +264,15 @@ const handleQuantityChange = (index, quantity) => {
                     </tbody>
 
                 </table>
-                <div className="text-center">
-                    <button className='btn btn-primary m-2' onClick={handleButtonClick}> Valider </button>
-                    <button className="btn btn-secondary" onClick={handlePrint}>Imprimer</button>
-                </div>
                 {message && (
                     <div id="error-message" className={`${message.type === 'error' ? 'text-danger' : 'text-success'} mb-3 col-12`}>
                         {message.text}
                     </div>
                 )}
+                <div className="text-center">
+                    <button className='btn btn-primary m-2' onClick={handleButtonClick}> Valider </button>
+                    <button className="btn btn-secondary" onClick={handlePrint}>Imprimer</button>
+                </div>
             </div>
         </div>
     );

@@ -15,6 +15,18 @@ const generateDisplayDate = () => {
     return `${day}-${month}-${year}`;
 };
 
+const ErrorModal = ({ message, onClose }) => {
+    return (
+        <div className="modal text-center">
+            <div className="modal-content">
+                <h3>Alerte</h3>
+                <p style={{ fontWeight: 'bold', fontSize: '20px' }} >{message}</p>
+                <button onClick={onClose} className="close-button">Fermer</button>
+            </div>
+        </div>
+    );
+};
+
 const BonDeLivraison = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [currentDeliveryNoteId, setCurrentDeliveryNoteId] = useState(null);
@@ -36,6 +48,8 @@ const BonDeLivraison = () => {
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const deliveryNoteId = queryParams.get('deliveryNoteId');
+    const [errorModalMessage, setErrorModalMessage] = useState('');
+    const [showErrorModal, setShowErrorModal] = useState(false);
     const navigate = useNavigate();
 
     const fetchLastDeliveryNoteId = async () => {
@@ -109,17 +123,17 @@ const BonDeLivraison = () => {
         }
     }, [fetchProducts, modalIsOpen, searchTerm, generateDeliveryNumber]);
 
+    // Fonction pour ajouter un produit au bon de livraison
     const addProductToDelivery = (idProduct, description, price) => {
-        const isProductExist = selectedProducts.some(product => product.id === idProduct);
-        if (!isProductExist) {
-            setSelectedProducts([...selectedProducts, { id: idProduct, description, price, quantity: deliveryQuantity, returnQuantity: 0 }]);
-            setMessage('');
-        } else {
-            setMessage({ text: 'Le produit existe déjà dans la liste !', type: 'error' });
-            resetMessages();
-        }
-        setModalIsOpen(true);
-    };
+    const isProductExist = selectedProducts.some(product => product.id === idProduct);
+    if (!isProductExist) {
+        setSelectedProducts([...selectedProducts, { id: idProduct, description, price, quantity: deliveryQuantity, returnQuantity: 0 }]);
+    } else {
+        setErrorModalMessage(" Ce produit existe déjà dans la liste !!!! ");
+        setShowErrorModal(true);
+    }
+    setModalIsOpen(false);  // Fermer le modal de sélection de produit après l'ajout ou l'échec
+};
 
     const handleContextMenu = (event, index) => {
         event.preventDefault();
@@ -189,6 +203,41 @@ const BonDeLivraison = () => {
         }
     };
 
+    const handleCreateReturnVoucher = async (deliveryNoteId, deliveryNoteNumber) => {
+        const date_delivery = convertDateToDBFormat(deliveryDate);
+        
+        // Journaliser les valeurs avant d'envoyer la requête
+        console.log('Données envoyées pour créer le bon retour :', {
+            returnVoucherCode: deliveryNoteNumber,
+            returnVoucherDate: date_delivery,
+            returnVoucherStatus: false
+        });
+    
+        try {
+            const response = await axios.post(`${REACT_APP_BACKEND_URL}/returnVoucher/${deliveryNoteId}`, {
+                returnVoucherCode: deliveryNoteNumber,
+                returnVoucherDate: date_delivery,
+                returnVoucherStatus: false
+            });
+    
+            const createdReturnVoucher = response.data;
+    
+            // Journaliser la réponse du serveur
+            console.log('Réponse du serveur pour la création du bon retour :', createdReturnVoucher);
+    
+            setMessage({ text: 'Bon retour créé avec succès.', type: 'success' });
+            resetMessages();
+    
+            return createdReturnVoucher.returnVoucherId;
+        } catch (error) {
+            console.error('Erreur lors de la création du bon retour', error);
+            setMessage({ text: 'Erreur lors de la création du bon retour.', type: 'error' });
+            deleteMessage();
+            throw error;
+        }
+    };
+    
+
     const handleCreateToList = async (deliveryNoteId) => {
         try {
             const productsToAdd = selectedProducts.map(product => ({
@@ -241,20 +290,33 @@ const BonDeLivraison = () => {
     
     const handleButtonClick = async () => {
         try {
+            // Créez d'abord le bon de livraison
             const deliveryNoteId = await handleCreateDeliveryNote();
+    
             if (deliveryNoteId) {
+                // Ensuite, créez le bon retour
+                await handleCreateReturnVoucher(deliveryNoteId, deliveryNoteNumber);
+    
+                // Créez ensuite la liste de produits associés
                 await handleCreateToList(deliveryNoteId);
-                showPrintConfirmationDialog(deliveryNoteId); // Afficher la boîte de dialogue après la création
+    
+                // Affichez la boîte de dialogue de confirmation d'impression
+                showPrintConfirmationDialog(deliveryNoteId);
+    
+                // Réinitialisez les données du bon de livraison
                 resetDeliveryNote();
             } else {
-                //console.error('L\'identifiant du bon de livraison est indéfini');
+                // Si l'identifiant du bon de livraison est indéfini
                 setMessage({ text: 'Veuillez remplir les champs requis SVP.', type: 'error' });
                 deleteMessage();
             }
         } catch (error) {
             console.error('Erreur dans le processus de création', error);
+            setMessage({ text: 'Erreur dans le processus de création.', type: 'error' });
+            deleteMessage();
         }
     };
+    
 
     const resetMessages = () => {
         setTimeout(() => {
@@ -314,6 +376,13 @@ const BonDeLivraison = () => {
 
     return (
         <div>
+            {/* Affichage du modal d'erreur */}
+            {showErrorModal && (
+                    <ErrorModal 
+                        message={errorModalMessage}
+                        onClose={() => setShowErrorModal(false)}
+                    />
+                )}
             <div className='main' style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div className='resto m-1'>
                     <a href='/home'><img src={logo} alt="Logo" /></a>
@@ -323,10 +392,10 @@ const BonDeLivraison = () => {
                     <p className='m-0'>Contact: +32485239505</p>
                 </div>
                 <div className='branche m-1' style={{ width: '300px' }}>
-                    <p className='m-0'>Numéro de livraison : {deliveryNoteNumber}</p>
-                    <p className='m-0'>Date de livraison : {deliveryDate}</p>
+                    <p className='m-0'> <span class="fw-bold"> Numéro de livraison : </span> {deliveryNoteNumber}</p>
+                    <p className='m-0'> <span class="fw-bold">Date de livraison : </span> {deliveryDate}</p>
                     <div className="form-group d-flex align-items-center haut">
-                        <label htmlFor="branchCode" className="mr-2">Code client :</label>
+                        <label htmlFor="branchCode" className="mr-2"> <span class="fw-bold"></span>Code client :</label>
                         <select
                             className={`form-control custom-select ${isFocused ? 'focused' : ''}`}
                             id='branchCode'
@@ -335,7 +404,7 @@ const BonDeLivraison = () => {
                             onChange={handleBranchChange}
                             required
                         >
-                            <option value=''>Code</option>
+                            <option value=''> <span class="fw-bold"> Code </span></option>
                             {branches.map((office) => (
                                 <option key={office.branchId} value={office.branchCode}>
                                     {office.branchCode}
@@ -344,7 +413,7 @@ const BonDeLivraison = () => {
                         </select>
                     </div>
                     <div className='address-container'>
-                        <p className='address-label'>Adresse : {branchAddress}</p>
+                        <p className='address-label'> <span class="fw-bold"> Adresse :</span> {branchAddress}</p>
                         <div className='address-details'>
                             <div>{branchPostalCode} {branchCity}</div>
                         </div>
@@ -369,7 +438,7 @@ const BonDeLivraison = () => {
                 >
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h5 className="modal-title text-center">Sélectionner un produit</h5>
+                            <h5 className="modal-title text-center"> Produit ... </h5>
                             <button type="button" className="close" onClick={closeModal}>
                                 <span>&times;</span>
                             </button>

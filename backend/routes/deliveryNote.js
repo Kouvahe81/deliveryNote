@@ -6,6 +6,9 @@ const responseMiddleware = require('../middleware/responseMiddleware');
 // Route pour lister les  bons de livraisons
 router.get('/deliveryNote',deliveryNoteCtrl.listDeliveryNotes,responseMiddleware);
 
+//Liste des bon retours
+router.get('/returnVoucher',deliveryNoteCtrl.listReturnVoucher,responseMiddleware);
+
 router.get('/getLastDeliveryNoteId',deliveryNoteCtrl.getLastDeliveryNoteId,responseMiddleware);
 
 router.get('/deliveryNotes', deliveryNoteCtrl.getDeliveryNoteWithProducts, responseMiddleware);

@@ -36,6 +36,7 @@ exports.createReturnVoucher = async (req, res) => {
     const { returnVoucherCode, returnVoucherDate,returnVoucherStatus } = req.body;
     const { deliveryNoteId } = req.params;
     
+    
     if (!deliveryNoteId) {
         return res.status(400).json({ error: 'ID du bon de livraison manquant' });
     }
