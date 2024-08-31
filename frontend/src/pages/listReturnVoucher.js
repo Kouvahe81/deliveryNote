@@ -65,7 +65,7 @@ const ListReturnVoucher = () => {
     }, []);
 
     useEffect(() => {
-        let url = `${REACT_APP_BACKEND_URL}/deliveryNote`;
+        let url = `${REACT_APP_BACKEND_URL}/returnVoucher`;
         axios.get(url)
             .then(response => {
                 let filteredDeliveryNote = response.data;

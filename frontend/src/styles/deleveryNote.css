@@ -180,4 +180,12 @@ button {
   cursor: pointer;
 }
 
+.updated-product {
+  background-color: orange;
+}
+
+.new-product {
+  background-color: lightgreen;
+}
+
 

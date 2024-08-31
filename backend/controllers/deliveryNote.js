@@ -14,7 +14,10 @@ exports.listDeliveryNotes = async (req, res) => {
               branch.branchPostalCode 
           FROM DeliveryNote 
           JOIN branch ON DeliveryNote.branchId = branch.branchId
-          WHERE DeliveryNote.DeliveryNoteStatus = 0
+          AND DeliveryNote.DeliveryNoteStatus = 0
+          ORDER BY 
+            DeliveryNote.deliveryDate DESC;
+  
       `);
       res.status(200).json(results[0]);
   } catch (error) {
@@ -22,6 +25,33 @@ exports.listDeliveryNotes = async (req, res) => {
       res.status(500).json({ error: 'Erreur lors de la récupération des bons de livraisons' });
   }
 };
+
+
+// Fonction pour la liste des bons de livraison avec leurs bons de retours associés
+exports.listReturnVoucher = async (req, res) => {
+  try {
+      const results = await dbConnection.query(`
+          SELECT 
+              DeliveryNote.*, 
+              branch.branchCode,
+              branch.branchName, 
+              branch.branchAddress, 
+              branch.branchCity, 
+              branch.branchPostalCode 
+          FROM DeliveryNote 
+          JOIN branch ON DeliveryNote.branchId = branch.branchId
+          JOIN returnVoucher ON DeliveryNote.deliveryNoteId = returnVoucher.deliveryNoteId
+          WHERE returnVoucher.returnVoucherStatus = 0
+          ORDER BY 
+              DeliveryNote.deliveryDate DESC;
+      `);
+      res.status(200).json(results[0]);
+  } catch (error) {
+      console.error('Erreur lors de la récupération des bons de livraison :', error);
+      res.status(500).json({ error: 'Erreur lors de la récupération des bons de livraison.' });
+  }
+};
+
 
 // Fonction pour récupérer les bon de livraison et lignes produits associés
 exports.getDeliveryNoteWithProducts = async (req, res) => {
