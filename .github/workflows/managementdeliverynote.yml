@@ -22,7 +22,18 @@ jobs:
       run: |
         cd frontend
         npm install
+        
+    # Exécuter les tests unitaires et d'intégration
+    - name: Run Unit and Integration Tests
+      run: |
+        cd frontend
+        npm test -- --ci --runInBand
 
+    # Exécuter les tests E2E (assurez-vous que Cypress est bien configuré)
+    - name: Run E2E Tests
+      run: |
+        cd frontend
+        npx cypress run
     - name: Build frontend
       run: |
         cd frontend
