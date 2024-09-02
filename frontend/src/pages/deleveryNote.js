@@ -280,7 +280,7 @@ const BonDeLivraison = () => {
         if (shouldPrint) {
             navigate(`/finalDeliveryNote?deliveryNoteId=${currentDeliveryNoteId}`);
         }else{
-            window.location.reload();
+            navigate('/listDeliveryNote');
         }
     };
 
